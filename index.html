@@ -4,12 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>디지털 성돌: 시민의 메시지로 쌓아가는 한양도성</title>
+    <!-- Google Fonts & Tailwind Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
-            --primary-blue: #0A192F;
+            --bg-dark: #070B19;
+            --card-dark: #0E162D;
             --accent-gold: #FFB020;
-            --stone-bg: rgba(255, 176, 32, 0.15);
-            --stone-border: rgba(255, 176, 32, 0.6);
+            --accent-gold-glow: rgba(255, 176, 32, 0.35);
+            --neon-blue: #00F0FF;
+            --neon-blue-glow: rgba(0, 240, 255, 0.25);
+            --text-main: #F3F4F6;
+            --text-muted: #9CA3AF;
         }
 
         * {
@@ -21,303 +29,743 @@
         }
 
         body {
-            background-color: var(--primary-blue);
-            color: #fff;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             overflow: hidden;
             height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* 헤더 영역 */
+        /* 모바일 프레임 디바이스 디자인 (PC 프리뷰 최적화) */
+        .mobile-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            background: radial-gradient(circle at top, #142347 0%, var(--bg-dark) 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+
         header {
-            padding: 15px;
-            background: linear-gradient(to bottom, rgba(10,25,47,0.9), rgba(10,25,47,0));
+            padding: 20px 20px 15px 20px;
+            background: linear-gradient(to bottom, rgba(7, 11, 25, 0.95) 70%, rgba(7, 11, 25, 0));
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             z-index: 10;
+        }
+
+        .header-content {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
         }
 
-        .title-area h1 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .title-area p {
-            font-size: 0.75rem;
-            color: #aaa;
-            margin-top: 2px;
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .status-area {
-            text-align: right;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 6px 10px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .status-area .total {
-            font-size: 0.75rem;
-            color: #ddd;
-        }
-        .status-area .count {
+        .logo-area i {
             color: var(--accent-gold);
-            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px var(--accent-gold-glow);
         }
 
-        /* 메인 성벽 뷰포트 (가로 스크롤 가능) */
+        .logo-area h1 {
+            font-size: 1.15rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            background: linear-gradient(45deg, #FFF, var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+            font-weight: 400;
+        }
+
+        /* 벽돌 개수 계판 (가장 강조된 수치 영역) */
+        .brick-counter-card {
+            background: rgba(14, 22, 45, 0.85);
+            border: 1px solid rgba(255, 176, 32, 0.3);
+            border-radius: 12px;
+            padding: 8px 14px;
+            text-align: right;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 0 8px rgba(255,176,32,0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .brick-counter-card.pulse {
+            transform: scale(1.05);
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 20px var(--accent-gold-glow);
+        }
+
+        .counter-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+
+        .counter-label span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: #10B981;
+            display: inline-block;
+            box-shadow: 0 0 8px #10B981;
+        }
+
+        .counter-value {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(255, 176, 32, 0.4);
+            margin-top: 2px;
+            font-family: monospace;
+        }
+
+        /* 성벽 스크롤 영역 (도성의 굴곡 및 광활한 느낌 재현) */
         .wall-viewport {
             flex: 1;
             overflow-x: auto;
             overflow-y: hidden;
             display: flex;
             align-items: center;
-            padding: 60px 20px 140px 20px;
+            padding: 100px 20px 180px 20px;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
-            /* 배경 이미지가 있다면 아래 주석을 풀고 넣으세요 */
-            /* background: url('첫번째이미지경로.jpg') no-repeat center center; */
-            /* background-size: cover; */
+            /* 도성 실루엣 느낌의 백그라운드 그라디언트 및 이펙트 */
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(255, 176, 32, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, rgba(0, 240, 255, 0.06) 0%, transparent 40%);
         }
 
-        /* 성벽을 이루는 성돌 그리드 (각자성석 컨셉) */
-        .wall-container {
+        /* 성벽 컨테이너 (실제 벽돌들이 격자 배열로 쌓여 나감) */
+        .wall-grid {
             display: grid;
-            grid-template-rows: repeat(4, 55px);
+            grid-template-rows: repeat(5, 52px);
             grid-auto-flow: column;
             grid-auto-columns: 110px;
-            gap: 6px;
-            padding-right: 100px;
+            gap: 8px;
+            padding-right: 120px;
+            padding-left: 20px;
+            perspective: 800px;
         }
 
-        /* 성돌 개별 스타일 (포스트잇 + 아크릴 블록 느낌) */
-        .stone {
-            background: var(--stone-bg);
-            border: 1px solid var(--stone-border);
-            border-radius: 4px;
-            padding: 6px;
-            font-size: 0.65rem;
+        /* 개별 성석(성벽 돌) 스타일링 (각자성석의 석판 느낌) */
+        .stone-block {
+            background: rgba(26, 36, 65, 0.5);
+            border: 1px solid rgba(255, 176, 32, 0.25);
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 0.68rem;
+            font-weight: 500;
+            line-height: 1.3;
+            color: rgba(255, 255, 255, 0.85);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            word-break: break-all;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.05);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
             overflow: hidden;
-            box-shadow: 0 0 8px rgba(255, 176, 32, 0.2);
-            transition: all 0.3s ease;
-            animation: fadeIn 0.5s ease-out;
         }
 
-        .stone.new-stone {
-            background: rgba(255, 255, 255, 0.9);
-            color: #000;
-            border-color: #fff;
-            box-shadow: 0 0 15px #fff;
+        /* 각자성석의 가로 세로 돌 느낌 다변화 */
+        .stone-block::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 176, 32, 0.05) 0%, transparent 60%);
+            pointer-events: none;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+        /* 새 벽돌이 생성되어 결합되었을 때의 역동적 이펙트 */
+        .stone-block.just-added {
+            animation: buildStone 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            background: rgba(255, 176, 32, 0.95) !important;
+            color: #050814 !important;
+            border-color: #FFF !important;
+            box-shadow: 0 0 25px var(--accent-gold), inset 0 0 8px #FFF !important;
+            transform: scale(1.1) rotateY(15deg);
+            z-index: 5;
         }
 
-        /* 하단 고정 UI 컨트롤러 */
-        .bottom-controls {
+        .stone-block.just-added .stone-creator {
+            color: #050814 !important;
+            opacity: 0.8;
+        }
+
+        .stone-block.user-contrib {
+            border-color: var(--accent-gold) !important;
+            background: rgba(30, 45, 85, 0.85) !important;
+            color: #FFF !important;
+            font-weight: 700;
+            box-shadow: 0 0 15px var(--accent-gold-glow), inset 0 0 6px rgba(255, 176, 32, 0.2) !important;
+            animation: goldPulse 2s infinite alternate ease-in-out;
+        }
+
+        .stone-block.user-contrib .stone-creator {
+            color: var(--accent-gold) !important;
+            text-shadow: 0 0 5px rgba(255, 176, 32, 0.6);
+        }
+
+        @keyframes goldPulse {
+            0% {
+                box-shadow: 0 0 8px rgba(255, 176, 32, 0.35), inset 0 0 4px rgba(255, 176, 32, 0.1);
+                border-color: rgba(255, 176, 32, 0.6);
+                transform: scale(1);
+            }
+            100% {
+                box-shadow: 0 0 20px rgba(255, 176, 32, 0.9), inset 0 0 10px rgba(255, 176, 32, 0.4);
+                border-color: #FFF;
+                transform: scale(1.02);
+            }
+        }
+
+        @keyframes buildStone {
+            0% {
+                opacity: 0;
+                transform: translateY(-80px) scale(0.5) rotate(15deg);
+                filter: brightness(3);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+                filter: brightness(1);
+            }
+        }
+
+        /* 각자성석 새겨진 서명 영역 (사람 이름/지역구 등) */
+        .stone-creator {
+            font-size: 0.55rem;
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-top: 4px;
+            align-self: flex-end;
+            letter-spacing: -0.2px;
+        }
+
+        /* 성벽 호버 및 선택 피드백 */
+        .stone-block:hover {
+            transform: translateY(-4px) scale(1.04);
+            border-color: var(--accent-gold);
+            box-shadow: 0 8px 16px var(--accent-gold-glow);
+            background: rgba(30, 45, 85, 0.8);
+        }
+
+        /* 하단 제어 대시보드 영역 */
+        .dashboard-control {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(to top, rgba(10,25,47,1) 80%, rgba(10,25,47,0));
-            padding: 15px 15px 25px 15px;
+            background: linear-gradient(to top, 
+                rgba(7, 11, 25, 1) 0%, 
+                rgba(7, 11, 25, 0.98) 75%, 
+                rgba(7, 11, 25, 0) 100%);
+            padding: 10px 20px 30px 20px;
             z-index: 10;
         }
 
-        /* 타임라인 내비게이션 */
-        .timeline-tabs {
+        /* 연대기/기획 타임라인 바 */
+        .timeline-container {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 3px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(14, 22, 45, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+            padding: 4px;
+            margin-bottom: 16px;
+            position: relative;
         }
 
-        .tab-btn {
+        .timeline-tab {
             flex: 1;
             background: none;
             border: none;
-            color: #888;
-            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 500;
             padding: 8px 0;
-            border-radius: 17px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.25s ease;
+            z-index: 2;
+        }
+
+        .timeline-tab.active {
+            color: var(--bg-dark);
+            font-weight: 700;
+            background: var(--accent-gold);
+            box-shadow: 0 2px 10px var(--accent-gold-glow);
+        }
+
+        /* 실시간 메세지 & 각자성석 작성 양식 영역 */
+        .input-form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(14, 22, 45, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 12px;
+            border-radius: 16px;
+            backdrop-filter: blur(5px);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* 각자성석 고유 서명란 (이름 & 지역 등) */
+        .sign-input {
+            width: 85px;
+            background: rgba(7, 11, 25, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            color: var(--accent-gold);
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 10px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .sign-input::placeholder {
+            color: rgba(255, 176, 32, 0.4);
+            font-weight: normal;
+        }
+
+        .sign-input:focus {
+            border-color: var(--accent-gold);
+        }
+
+        /* 응원 메세지 본문란 */
+        .msg-input {
+            flex: 1;
+            background: rgba(7, 11, 25, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.82rem;
+            padding: 10px 12px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .msg-input::placeholder {
+            color: #4B5563;
+        }
+
+        .msg-input:focus {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 8px rgba(255, 176, 32, 0.1);
+        }
+
+        /* 성돌 쌓기 행동 버튼 */
+        .stack-button {
+            background: linear-gradient(135deg, #FFC145 0%, var(--accent-gold) 100%);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 8px;
+            padding: 0 16px;
+            font-weight: 800;
+            font-size: 0.82rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--accent-gold-glow);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .stack-button:active {
+            transform: scale(0.96);
+            box-shadow: none;
+        }
+
+        .form-guide-text {
+            font-size: 0.63rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            padding: 0 4px;
+        }
+
+        /* 개별 성돌 상세 모달 (디지털 도장 획득 컨셉) */
+        .stone-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 8, 20, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .stone-modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: radial-gradient(circle at top, #1A284E 0%, var(--card-dark) 100%);
+            border: 2px solid var(--accent-gold);
+            border-radius: 20px;
+            width: 85%;
+            max-width: 350px;
+            padding: 24px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 30px var(--accent-gold-glow);
+            transform: scale(0.85);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .stone-modal.show .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-certificate-header {
+            text-align: center;
+            border-bottom: 1px dashed rgba(255,255,255,0.15);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .modal-certificate-header i {
+            color: var(--accent-gold);
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            text-shadow: 0 0 12px var(--accent-gold-glow);
+        }
+
+        .modal-certificate-header h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #FFF;
+        }
+
+        .modal-body {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-message {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-main);
+            line-height: 1.5;
+            background: rgba(0,0,0,0.25);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent-gold);
+            margin-bottom: 12px;
+        }
+
+        .modal-creator {
+            font-size: 0.85rem;
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        .modal-date {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .modal-close-btn {
+            background: rgba(255,255,255,0.1);
+            color: #FFF;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            width: 100%;
+            padding: 12px 0;
+            font-weight: 700;
+            font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .tab-btn.active {
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            font-weight: bold;
-        }
-
-        /* 입력창 디자인 */
-        .input-container {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            padding: 4px 4px 4px 12px;
-        }
-
-        .input-container input {
-            flex: 1;
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 0.85rem;
-            outline: none;
-            padding: 8px 0;
-        }
-
-        .input-container input::placeholder {
-            color: #666;
-        }
-
-        .submit-btn {
-            background: #fff;
-            color: var(--primary-blue);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
+        .modal-close-btn:hover {
+            background: rgba(255,255,255,0.2);
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="title-area">
-            <h1>디지털 성돌: 한양도성</h1>
-            <p>시민의 메시지로 완성하는 세계유산 등재 기원</p>
-        </div>
-        <div class="status-area">
-            <div class="total">참여 완료 <span class="count" id="total-count">52,148</span></div>
-        </div>
-    </header>
+    <div class="mobile-container">
+        
+        <!-- 상단 고정 헤더 & 벽돌 수량 카운터 -->
+        <header>
+            <div class="header-content">
+                <div class="logo-area">
+                    <i class="fa-solid fa-gopreference"></i>
+                    <div>
+                        <h1>디지털 성돌</h1>
+                        <div class="subtitle">한양도성 유네스코 등재 기원 캠페인</div>
+                    </div>
+                </div>
+                <!-- 횟수를 "벽돌갯수" (성돌갯수)로 직관적으로 수정한 영역 -->
+                <div class="brick-counter-card" id="counterCard">
+                    <div class="counter-label"><span></span> 쌓인 성돌 갯수</div>
+                    <div class="counter-value" id="brickCounter">52,148</div>
+                </div>
+            </div>
+        </header>
 
-    <!-- 성벽 뷰포트 영역 -->
-    <div class="wall-viewport" id="viewport">
-        <div class="wall-container" id="wall">
-            <!-- 자바스크립트로 기본 성돌(기존 응원글)이 채워집니다 -->
-        </div>
-    </div>
-
-    <!-- 하단 고정 영역 -->
-    <div class="bottom-controls">
-        <!-- 1번째 사진의 Timeline 카테고리 구현 -->
-        <div class="timeline-tabs">
-            <button class="tab-btn active" onclick="switchTab('원형')">한양도성 원형</button>
-            <button class="tab-btn" onclick="switchTab('훼손')">훼손과 단절</button>
-            <button class="tab-btn" onclick="switchTab('캠페인')">디지털 성돌</button>
-            <button class="tab-btn" onclick="switchTab('복원')">미래의 복원</button>
+        <!-- 성벽 가로 스크롤 뷰포트 -->
+        <div class="wall-viewport" id="wallViewport">
+            <div class="wall-grid" id="wallGrid">
+                <!-- 자바스크립트에 의해서 기존의 성돌들이 로드됩니다. -->
+            </div>
         </div>
 
-        <!-- 메시지 입력 영역 (각자성석 스택스톤) -->
-        <div class="input-container">
-            <input type="text" id="message-input" placeholder="여기에 등재 응원 메시지를 입력하세요 (50자 이내)" maxlength="50">
-            <button class="submit-btn" onclick="addStone()">성돌 쌓기</button>
+        <!-- 하단 대시보드 및 입력 패널 -->
+        <div class="dashboard-control">
+            
+            <!-- 기획안 1번째 사진의 타임라인 바 구현 -->
+            <div class="timeline-container">
+                <button class="timeline-tab active" onclick="navigateTimeline('원형', this)">한양도성 원형</button>
+                <button class="timeline-tab" onclick="navigateTimeline('훼손', this)">훼손과 단절</button>
+                <button class="timeline-tab" onclick="navigateTimeline('캠페인', this)">디지털 성돌</button>
+                <button class="timeline-tab" onclick="navigateTimeline('복원', this)">미래의 복원</button>
+            </div>
+
+            <!-- 성돌 쌓기 참여 양식 (각자성석 컨셉: 작성자 이름 + 응원구) -->
+            <div class="input-form-container">
+                <div class="input-row">
+                    <!-- 각자성석 명명: 예) 김철수(마포), 이민우(종로) 등 기재 유도 -->
+                    <input type="text" id="signer" class="sign-input" placeholder="이름 (지역)" maxlength="6">
+                    <input type="text" id="message" class="msg-input" placeholder="성벽에 새길 응원 한 마디를 적어주세요!" maxlength="50">
+                    <button class="stack-button" onclick="stackNewStone()">
+                        <i class="fa-solid fa-cube"></i> 쌓기
+                    </button>
+                </div>
+                <div class="form-guide-text">
+                    <span>* 입력된 성함과 메시지는 도성 벽돌에 영구히 음각 처리됩니다.</span>
+                    <span id="charCount">0 / 50</span>
+                </div>
+            </div>
         </div>
+
+        <!-- 개별 성돌 선택 시 팝업 모달 -->
+        <div class="stone-modal" id="stoneModal">
+            <div class="modal-card">
+                <div class="modal-certificate-header">
+                    <i class="fa-solid fa-stamp"></i>
+                    <h3>디지털 각자성석 증서</h3>
+                    <div class="subtitle">한양도성 유네스코 세계유산 등재 캠페인 참여</div>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-message" id="modalMessage">"문화유산 등재를 진심으로 응원합니다!"</div>
+                    <div class="modal-creator" id="modalCreator">각자(刻字) 시민: 홍길동 (종로구)</div>
+                    <div class="modal-date" id="modalDate">서기 2026년 07월 13일 참여 완료</div>
+                </div>
+                <button class="modal-close-btn" onclick="closeModal()">성벽으로 돌아가기</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // 초기 가상의 메시지 데이터 (2, 3번째 사진의 한 마디 감성 반영)
-        const initialMessages = [
-            "유네스코 등재 기원!", "우리의 자랑스러운 문화유산", "한양도성 파이팅", "꼭 등재되기를!",
-            "아름다운 우리 성곽", "역사를 지킵시다", "시민이 응원합니다", "세계로 뻗어가라",
-            "한양도성 사랑해요", "소중한 우리 가치", "역사 속으로", "영원히 보존되길",
-            " 자랑스럽습니다", "함께 쌓는 성벽", "유네스코로 가자", "우리의 역사"
+        // 초기 52,148개에서 출발하는 성돌 누적 카운트
+        let currentBrickCount = 52148;
+
+        // 과거 각자성석처럼 시민들이 남겨놓은 가상의 초기 성돌 데이터셋
+        const existingStones = [
+            { text: "아름다운 세계 유산으로 보존되길!", creator: "이민준 (강남)" },
+            { text: "우리의 한양도성 영원하라!", creator: "김지우 (종로)" },
+            { text: "역사적인 가치를 세계에 알립시다", creator: "박서준 (마포)" },
+            { text: "선조들의 숨결을 느낍니다.", creator: "최예은 (성북)" },
+            { text: "꼭 유네스코에 등재 성공해요!", creator: "정도윤 (서대문)" },
+            { text: "등재 기원 응원합니다!", creator: "강하윤 (동대문)" },
+            { text: "우리 고유의 한양도성 파이팅", creator: "조민재 (중구)" },
+            { text: "자랑스러운 민족문화유산", creator: "윤서아 (강서)" },
+            { text: "정갈하게 뻗은 성곽길 참 좋아해요.", creator: "임우진 (서초)" },
+            { text: "시민의 힘으로 완성합시다", creator: "한소율 (은평)" },
+            { text: "도성 산책길 세계로 뻗어나가길", creator: "오지호 (동작)" },
+            { text: "역사를 품은 길, 등재 성공 기원!", creator: "신아윤 (영등포)" },
+            { text: "세계가 알아볼 가치입니다.", creator: "송시우 (용산)" },
+            { text: "복원 사업도 힘내주세요", creator: "권지안 (성동)" },
+            { text: "한양도성의 가치는 최고!", creator: "황주원 (광진)" },
+            { text: "아이들과 꼭 등재 축하하러 갈게요", creator: "안소윤 (노원)" }
         ];
 
-        const wall = document.getElementById('wall');
-        const viewport = document.getElementById('viewport');
-        let currentTotal = 52148;
+        const wallGrid = document.getElementById('wallGrid');
+        const wallViewport = document.getElementById('wallViewport');
+        const brickCounter = document.getElementById('brickCounter');
+        const counterCard = document.getElementById('counterCard');
+        const messageInput = document.getElementById('message');
+        const signerInput = document.getElementById('signer');
+        const charCountDisplay = document.getElementById('charCount');
 
-        // 초기 성돌 배치 함수
-        function initWall() {
-            // 성벽이 꽉 차 보이도록 더미 데이터를 순환하며 성돌 생성
-            for (let i = 0; i < 40; i++) {
-                const msg = initialMessages[i % initialMessages.length];
-                createStone(msg, false);
+        // 초기 화면 렌더링 시 기존 성돌들을 무작위 배치하여 성벽 형상화
+        function initializeWall() {
+            // 성벽이 조밀하고 웅장해 보이도록 데이터를 다양하게 순환 배열
+            for (let i = 0; i < 45; i++) {
+                const data = existingStones[i % existingStones.length];
+                createStoneElement(data.text, data.creator, false);
             }
-            // 초기 스크롤을 오른쪽 끝(최신)으로 이동
+            
+            // 페이지 진입 후 자연스럽게 도성의 최신 참여구역(우측 끝)으로 스크롤
             setTimeout(() => {
-                viewport.scrollLeft = wall.scrollWidth;
-            }, 300);
+                wallViewport.scrollLeft = wallGrid.scrollWidth;
+            }, 500);
         }
 
-        // 성돌 요소 생성기
-        function createStone(text, isNew = false) {
+        // 성벽 내 개별 성석 엘리먼트 생성
+        function createStoneElement(text, creator, isNew = false) {
             const stone = document.createElement('div');
-            stone.className = isNew ? 'stone new-stone' : 'stone';
-            stone.innerText = text;
-            wall.appendChild(stone);
+            stone.className = 'stone-block';
+            if (isNew) {
+                stone.className = 'stone-block just-added user-contrib';
+            }
 
-            // 새 성돌을 쌓았을 경우 서서히 빛이 바래며 기존 성벽 톤으로 동화됨
+            // 축약 텍스트
+            const shortText = text.length > 20 ? text.substring(0, 18) + '...' : text;
+
+            stone.innerHTML = `
+                <div>${shortText}</div>
+                <div class="stone-creator">${creator}</div>
+            `;
+
+            // 클릭 이벤트: 시민들이 참여한 각자성석 상세 보기 팝업 출력
+            stone.addEventListener('click', () => {
+                openModal(text, creator);
+            });
+
+            wallGrid.appendChild(stone);
+
+            // 새 성석 결합 연출 후 기본 톤 제거 (지속적 발광을 위해 user-contrib 클래스는 그대로 유지)
             if (isNew) {
                 setTimeout(() => {
-                    stone.classList.remove('new-stone');
-                }, 3000);
+                    stone.classList.remove('just-added');
+                }, 4000);
             }
         }
 
-        // 시민이 메시지를 입력해 성돌을 쌓는 함수
-        function addStone() {
-            const input = document.getElementById('message-input');
-            const text = input.value.trim();
+        // 사용자가 입력한 메시지를 실제 성벽 돌로 생성하는 코어 로직
+        function stackNewStone() {
+            const text = messageInput.value.trim();
+            const creatorName = signerInput.value.trim() || "무명시민";
 
-            if (text === '') {
-                alert('응원 메시지를 입력해주세요!');
+            if (!text) {
+                alert("성벽에 남길 따뜻한 응원의 메시지를 작성해주세요!");
                 return;
             }
 
-            // 성돌 추가 및 카운트 증가
-            createStone(text, true);
-            currentTotal++;
-            document.getElementById('total-count').innerText = currentTotal.toLocaleString();
+            // 성벽에 새로운 돌 결합
+            createStoneElement(text, creatorName, true);
 
-            // 입력창 비우기 및 최신 성돌 위치로 부드럽게 스크롤
-            input.value = '';
-            viewport.scrollLeft = wall.scrollWidth;
-        }
-
-        // 타임라인 탭 전환 액션 (시각적 피드백 제공)
-        function switchTab(sectionName) {
-            const tabs = document.querySelectorAll('.tab-btn');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
+            // '벽돌 갯수' 상승 이펙트 및 업데이트
+            currentBrickCount++;
+            brickCounter.innerText = currentBrickCount.toLocaleString();
             
-            // 탭 클릭 시 해당 연대/스토리라인 영역으로 스크롤이동하는 시각 효과
-            if(sectionName === '원형') viewport.scrollLeft = 0;
-            if(sectionName === '훼손') viewport.scrollLeft = wall.scrollWidth * 0.3;
-            if(sectionName === '캠페인') viewport.scrollLeft = wall.scrollWidth * 0.6;
-            if(sectionName === '복원') viewport.scrollLeft = wall.scrollWidth;
+            // 카운터 카드 발광 펄스 이펙트 활성화
+            counterCard.classList.add('pulse');
+            setTimeout(() => {
+                counterCard.classList.remove('pulse');
+            }, 1000);
+
+            // 입력 폼 클리어 및 초기화
+            messageInput.value = '';
+            signerInput.value = '';
+            charCountDisplay.innerText = "0 / 50";
+
+            // 사용자가 쌓은 성벽 돌 위치를 한눈에 볼 수 있도록 자동 소프트 스크롤
+            setTimeout(() => {
+                wallViewport.scrollLeft = wallGrid.scrollWidth;
+            }, 100);
         }
 
-        // 엔터키 입력 지원
-        document.getElementById('message-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') addStone();
+        // 글자 수 실시간 계측
+        messageInput.addEventListener('input', () => {
+            const length = messageInput.value.length;
+            charCountDisplay.innerText = `${length} / 50`;
         });
 
-        initWall();
+        // 엔터키 입력 지원
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') stackNewStone();
+        });
+
+        // 각자성석 디지털 증서 팝업 제어
+        function openModal(text, creator) {
+            document.getElementById('modalMessage').innerText = `"${text}"`;
+            document.getElementById('modalCreator').innerText = `각자(刻字) 시민: ${creator}`;
+            
+            const today = new Date();
+            const dateStr = `서기 ${today.getFullYear()}년 ${String(today.getMonth()+1).padStart(2, '0')}월 ${String(today.getDate()).padStart(2, '0')}일 새김 완료`;
+            document.getElementById('modalDate').innerText = dateStr;
+
+            document.getElementById('stoneModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('stoneModal').classList.remove('show');
+        }
+
+        // 타임라인 섹션 탭 네비게이션 제어
+        function navigateTimeline(section, tabBtn) {
+            // 버튼 액티브 스타일 교체
+            const tabs = document.querySelectorAll('.timeline-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            tabBtn.classList.add('active');
+
+            // 타임라인 위치에 맞추어 성벽을 수평 횡단 이동 연출
+            const maxScroll = wallGrid.scrollWidth - wallViewport.clientWidth;
+            if (section === '원형') {
+                wallViewport.scrollLeft = 0;
+            } else if (section === '훼손') {
+                wallViewport.scrollLeft = maxScroll * 0.33;
+            } else if (section === '캠페인') {
+                wallViewport.scrollLeft = maxScroll * 0.66;
+            } else if (section === '복원') {
+                wallViewport.scrollLeft = maxScroll;
+            }
+        }
+
+        // 시스템 시작 가동
+        initializeWall();
     </script>
 </body>
 </html>
