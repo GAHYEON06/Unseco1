@@ -690,21 +690,19 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, addDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =========================================================================
+        
         // [필독] 깃허브 페이지(github.io) 실시간 데이터 누적을 위한 Firebase 설정
-        // =========================================================================
-        // 구글 Firebase 콘솔에서 발급받은 웹 앱 설정을 여기에 그대로 입력하시면 됩니다!
-        // 예시: apiKey: "AIzaSy...", authDomain: "...firebaseapp.com", ...
-        const myFirebaseConfig = {
-            apiKey: "AIzaSyCGU1BEyGMCehMNq2vQyJQV6xOQM0qgBg0",
-            authDomain: "database-4509e.firebaseapp.com",
-            projectId: "database-4509e",
-            storageBucket: "database-4509e.firebasestorage.app",
-            messagingSenderId: "421076649255",
-            appId: "1:421076649255:web:f93b6f4d13e9d20d9d9502",
-            measurementId: "G-H9WLGSHGXE"
-        };
-        // =========================================================================
+        
+        const firebaseConfig = {
+              apiKey: "AIzaSyCGU1BEyGMCehMNq2vQyJQV6xOQM0qgBg0",
+              authDomain: "database-4509e.firebaseapp.com",
+              projectId: "database-4509e",
+              storageBucket: "database-4509e.firebasestorage.app",
+              messagingSenderId: "421076649255",
+              appId: "1:421076649255:web:f93b6f4d13e9d20d9d9502",
+              measurementId: "G-H9WLGSHGXE"
+            };
+       
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'hanyangdoseong-wall-prod';
         let db, auth;
