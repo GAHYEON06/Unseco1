@@ -562,6 +562,11 @@
         <!-- 실시간 알림 안내 토스트 -->
         <div id="toast" class="toast-message">🧱 새로운 성돌이 성곽에 굳건히 쌓였습니다!</div>
 
+        <!-- 외부 깃허브 배포 시 미연동 안내 가이드 버튼 (데모/시뮬레이션 모드일 때만 동적 활성화됨) -->
+        <div id="github-guide-btn" class="location-hotspot" style="display: none; left: 15px; top: 75px; background: rgba(239, 68, 68, 0.9); border-color: #FFF; font-size: 0.65rem; padding: 6px 12px; z-index: 60;" onclick="openGithubGuide()">
+            <span style="background: #FFF; animation: none;"></span> ⚠️ 깃허브 실시간 연동법 보기
+        </div>
+
         <!-- 상단 헤더 -->
         <header>
             <div class="header-content">
@@ -647,6 +652,37 @@
             </div>
         </div>
 
+        <!-- 깃허브 페이지용 외부 Firebase 연동 가이드 모달 -->
+        <div class="stone-modal" id="githubGuideModal">
+            <div class="modal-card" style="max-width: 380px; text-align: left; background: #0E162D; border-color: #10B981; box-shadow: 0 15px 40px rgba(0,0,0,0.8), 0 0 30px rgba(16, 185, 129, 0.3);">
+                <div class="modal-certificate-header" style="text-align: center;">
+                    <i class="fa-solid fa-circle-info" style="color: #10B981; text-shadow: 0 0 12px rgba(16, 185, 129, 0.5);"></i>
+                    <h3 style="color: #10B981;">깃허브 실시간 서버 연동 가이드</h3>
+                    <div class="subtitle">1분 만에 무료 데이터베이스 연결하기</div>
+                </div>
+                <div style="font-size: 0.72rem; line-height: 1.5; color: #D1D5DB; display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 5px;">
+                    <p>현재 <strong>깃허브 페이지(github.io)</strong> 환경이 감지되어 가상의 시뮬레이션 모드로 작동 중입니다. 실제 서버에 메시지가 영구 저장되게 하려면 아래 순서대로 본인의 Firebase 주소를 입력해 주셔야 합니다.</p>
+                    <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; border-left: 3px solid #10B981;">
+                        <span style="font-weight: bold; color: #FFF;">1단계: 무료 프로젝트 만들기</span><br>
+                        <a href="https://console.firebase.google.com" target="_blank" style="color: #60A5FA; text-decoration: underline;">Firebase 콘솔</a>에 접속 후 구글 로그인 -> <strong>[프로젝트 추가]</strong> 버튼을 눌러 새 프로젝트를 생성합니다.
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; border-left: 3px solid #10B981;">
+                        <span style="font-weight: bold; color: #FFF;">2단계: 데이터베이스 활성화</span><br>
+                        왼쪽 메뉴에서 <strong>Build -> Firestore Database</strong>로 이동 후 <strong>[데이터베이스 만들기]</strong>를 누릅니다. 위치는 서울(asia-northeast3)로 선택하시고, 보안 규칙은 일단 <strong>[테스트 모드에서 시작]</strong>을 클릭해 활성화해 주세요.
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; border-left: 3px solid #10B981;">
+                        <span style="font-weight: bold; color: #FFF;">3단계: 웹앱 등록 및 키값 복사</span><br>
+                        프로젝트 홈 화면 중앙의 <strong>웹 아이콘(&lt;/&gt;)</strong>을 눌러 닉네임을 적고 앱을 등록하면 <code>const firebaseConfig = { ... }</code> 설정 코드가 나타납니다.
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; border-left: 3px solid #10B981;">
+                        <span style="font-weight: bold; color: #FFF;">4단계: 코드에 붙여넣기 후 깃허브 업로드</span><br>
+                        현재 코드의 <code>const myFirebaseConfig = { ... }</code> 주석 아래에 발급받은 실제 데이터 객체를 그대로 채워 넣고 저장한 뒤, 깃허브에 다시 푸시하면 실시간 연동이 정상 작동합니다!
+                    </div>
+                </div>
+                <button class="modal-close-btn" style="margin-top: 15px; background: #10B981; border: none; font-weight: 800;" onclick="closeGithubGuide()">내용 확인 완료</button>
+            </div>
+        </div>
+
     </div>
 
     <script type="module">
@@ -654,12 +690,26 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, addDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 환경 변수 설정 감지 및 앱 ID 획득
+        // =========================================================================
+        // [필독] 깃허브 페이지(github.io) 실시간 데이터 누적을 위한 Firebase 설정
+        // =========================================================================
+        // 구글 Firebase 콘솔에서 발급받은 웹 앱 설정을 여기에 그대로 입력하시면 됩니다!
+        // 예시: apiKey: "AIzaSy...", authDomain: "...firebaseapp.com", ...
+        const myFirebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        // =========================================================================
+
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'hanyangdoseong-wall-prod';
         let db, auth;
         let isFirebaseActive = false;
 
-        // 야경 성벽 기본 데코레이션용 성석 데이터 (실시간 데이터가 부족할 때 성벽을 채우는 기본 아크릴 블록들)
+        // 야경 성벽 기본 데코레이션용 성석 데이터
         const initialStones = [
             { text: "아름다운 세계 유산으로 보존되길!", creator: "이민준 (강남)" },
             { text: "우리의 한양도성 세계로 향하리", creator: "김지우 (종로)" },
@@ -689,8 +739,18 @@
         const statusText = document.getElementById('connection-status');
         const pulseDot = document.getElementById('pulse-dot');
 
+        // Firebase 초기화 판단 로직 보완
         try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            // 1. 유저가 직접 입력한 깃허브용 Firebase 설정값이 존재하는지 최우선 체크
+            if (myFirebaseConfig && myFirebaseConfig.apiKey !== "YOUR_API_KEY") {
+                const app = initializeApp(myFirebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                isFirebaseActive = true;
+                console.log("시민 지정 외부 데이터베이스(Firebase) 정상 연결 완료");
+            } 
+            // 2. 플랫폼 샌드박스 내부 변수 자동 로드 시도
+            else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 let firebaseConfig;
                 if (typeof __firebase_config === 'string') {
                     firebaseConfig = JSON.parse(__firebase_config);
@@ -703,7 +763,7 @@
                 isFirebaseActive = true;
             }
         } catch (e) {
-            console.error("클라우드 시스템 설정 로드 오류. 라이브 시뮬레이션 모드로 전환합니다:", e);
+            console.error("데이터베이스 초기화 과정 오류 발생:", e);
         }
 
         // 인증 처리 (비동기) - 규칙 3 적용 및 재시도 큐 구축
@@ -787,6 +847,11 @@
             statusText.innerText = "한양도성 캠페인 (시뮬레이션 모드)";
             pulseDot.style.backgroundColor = "#FBBF24"; // 대기 및 가상 연결 주황색 신호
             
+            // 깃허브 배포 환경이고 Firebase 연동이 안 되어 있다면 가이드 버튼 노출
+            if (window.location.hostname.includes("github.io")) {
+                document.getElementById('github-guide-btn').style.display = 'flex';
+            }
+
             renderWall(activeRealStones);
 
             // 가상 시민들의 실시간 등록 이벤트 루프 작동 (15초마다 새 성석 영롱하게 추가)
@@ -836,6 +901,9 @@
                 startVirtualSync();
                 return;
             }
+
+            // 가이드 버튼 숨김 (성공적으로 서버 연동 시)
+            document.getElementById('github-guide-btn').style.display = 'none';
 
             // 규칙 규정 준수: user 고유 식별 코드를 UI 상태 표시창에 투명하게 출력
             statusText.innerText = `한양도성 캠페인 (연동자 ID: ${user.uid})`;
@@ -966,6 +1034,15 @@
 
         window.closeModal = function() {
             document.getElementById('stoneModal').classList.remove('show');
+        };
+
+        // 외부 배포 가이드 모달 관리 함수
+        window.openGithubGuide = function() {
+            document.getElementById('githubGuideModal').classList.add('show');
+        };
+
+        window.closeGithubGuide = function() {
+            document.getElementById('githubGuideModal').classList.remove('show');
         };
 
         window.showHotspot = function(title, description) {
