@@ -153,7 +153,7 @@
             border-radius: 10px;
         }
 
-        /* 파노라마 야경 씬 (원본 이미지의 비율 보존을 위한 종횡비 설정) */
+        /* 파노라마 야경 씬 */
         .panoramic-scene {
             height: 100%;
             width: calc(100vh * (1920 / 1080)); /* 16:9 비율 유지 */
@@ -167,7 +167,6 @@
         /* 실제 사진 속 성벽 위치에 정확히 오버레이되는 성돌 그리드 레이어 */
         .wall-grid {
             position: absolute;
-            /* 원본 이미지상 메인 성돌 집중구간 좌표 매핑 */
             left: 15%;
             top: 40.5%;
             width: 33%;
@@ -201,21 +200,21 @@
             position: relative;
         }
 
-        /* 빛나는 성돌(시민 참여) 발광 강화 효과 */
+        /* 실시간 연동된 빛나는 성돌 발광 강화 효과 */
         .stone-block.glowing {
-            background: rgba(255, 176, 32, 0.16) !important;
+            background: rgba(255, 176, 32, 0.22) !important;
             border-color: rgba(255, 176, 32, 0.95) !important;
-            box-shadow: 0 0 14px rgba(255, 176, 32, 0.7), inset 0 0 6px rgba(255, 176, 32, 0.3) !important;
+            box-shadow: 0 0 16px rgba(255, 176, 32, 0.85), inset 0 0 8px rgba(255, 176, 32, 0.4) !important;
             animation: pulseGlow 2.5s infinite alternate ease-in-out;
         }
 
         /* 방금 등록된 활활 타오르는 새 성돌 */
         .stone-block.just-added {
             animation: buildScale 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, pulseGlow 1.5s infinite alternate ease-in-out;
-            background: rgba(255, 255, 255, 0.9) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
             color: #030611 !important;
             border-color: #FFF !important;
-            box-shadow: 0 0 30px #FFF, 0 0 15px var(--accent-gold) !important;
+            box-shadow: 0 0 35px #FFF, 0 0 18px var(--accent-gold) !important;
             z-index: 30;
         }
 
@@ -230,7 +229,7 @@
                 border-color: rgba(255, 176, 32, 0.6);
             }
             100% {
-                box-shadow: 0 0 18px rgba(255, 176, 32, 0.95), inset 0 0 8px rgba(255, 176, 32, 0.4);
+                box-shadow: 0 0 20px rgba(255, 176, 32, 0.95), inset 0 0 10px rgba(255, 176, 32, 0.5);
                 border-color: #FFF;
             }
         }
@@ -254,7 +253,7 @@
             margin-top: 2px;
         }
 
-        /* 지도 주요 거점 핫스팟 (황학동, 남산, 인왕산) */
+        /* 지도 주요 거점 핫스팟 */
         .location-hotspot {
             position: absolute;
             background: rgba(7, 11, 25, 0.75);
@@ -570,12 +569,12 @@
                     <i class="fa-solid fa-gopreference"></i>
                     <div>
                         <h1>디지털 성돌</h1>
-                        <div class="subtitle">한양도성 유네스코 등재 기원 캠페인</div>
+                        <div class="subtitle" id="connection-status">한양도성 세계유산 등재 캠페인 (연동중...)</div>
                     </div>
                 </div>
                 <!-- 실시간 쌓인 벽돌 갯수 카운터 -->
                 <div class="brick-counter-card" id="counterCard">
-                    <div class="counter-label"><span></span> 쌓인 성돌 갯수</div>
+                    <div class="counter-label"><span id="pulse-dot"></span> 쌓인 벽돌 갯수</div>
                     <div class="counter-value" id="brickCounter">52,148</div>
                 </div>
             </div>
@@ -598,7 +597,7 @@
 
                 <!-- 실제 야경 사진의 성벽 격자 부분에 오버레이되는 투명 성돌 매핑 그리드 -->
                 <div class="wall-grid" id="wallGrid">
-                    <!-- JS에서 디지털 성돌들이 동적으로 오버레이 매핑됩니다. -->
+                    <!-- 클라우드에서 시민 참여 성돌들이 실시간 동적으로 렌더링됩니다 -->
                 </div>
 
             </div>
@@ -620,12 +619,12 @@
                 <div class="input-row">
                     <input type="text" id="signer" class="sign-input" placeholder="이름 (지역)" maxlength="6">
                     <input type="text" id="message" class="msg-input" placeholder="성벽에 새길 응원의 한 마디를 적어주세요!" maxlength="50">
-                    <button class="stack-button" onclick="stackNewStone()">
+                    <button class="stack-button" id="submit-btn">
                         <i class="fa-solid fa-cube"></i> 쌓기
                     </button>
                 </div>
                 <div class="form-guide-text">
-                    <span>* 입력하신 성함과 응원 메시지는 실제 성벽 위치에 영구히 발광 음각 처리됩니다.</span>
+                    <span>* 입력하신 성함과 응원 메시지는 데이터로 연동되어 전세계 화면에 동시 발광 반영됩니다.</span>
                     <span id="charCount">0 / 50</span>
                 </div>
             </div>
@@ -650,10 +649,17 @@
 
     </div>
 
-    <script>
-        let currentBrickCount = 52148;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, addDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 야경 성벽에 미리 박혀있는 고풍스러운 무명의 시민 응원 문구들 (사진처럼 가상의 성석들)
+        // 환경 변수 설정 감지 및 앱 ID 획득
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'hanyangdoseong-wall-prod';
+        let db, auth;
+        let isFirebaseActive = false;
+
+        // 야경 성벽 기본 데코레이션용 성석 데이터 (실시간 데이터가 부족할 때 성벽을 채우는 기본 아크릴 블록들)
         const initialStones = [
             { text: "아름다운 세계 유산으로 보존되길!", creator: "이민준 (강남)" },
             { text: "우리의 한양도성 세계로 향하리", creator: "김지우 (종로)" },
@@ -664,15 +670,13 @@
             { text: "우리 고유의 한양도성 파이팅", creator: "조민재 (중구)" },
             { text: "자랑스러운 소중한 민족문화유산", creator: "윤서아 (강서)" },
             { text: "정갈하게 뻗은 성곽길 참 좋아해요", creator: "임우진 (서초)" },
-            { text: "시민의 아름다운 마음으로 완성!", creator: "한소율 (은평)" },
-            { text: "도성 산책길 세계 최고의 명소로", creator: "오지호 (동작)" },
-            { text: "유네스코 등재 성공을 확신합니다", creator: "신아윤 (영등포)" },
-            { text: "역사를 품은 자랑스러운 골목길", creator: "송시우 (용산)" },
-            { text: "복원 사업에도 온 정성을 쏟길", creator: "권지안 (성동)" },
-            { text: "한양도성의 가치는 대한민국 최고!", creator: "황주원 (광진)" },
-            { text: "아이들과 함께 다시 걷는 성곽길", creator: "안소윤 (노원)" }
+            { text: "시민의 아름다운 마음으로 완성!", creator: "한소율 (은평)" }
         ];
 
+        let baseCount = 52148;
+        let activeRealStones = [];
+
+        // UI 요소 캐싱
         const wallGrid = document.getElementById('wallGrid');
         const wallViewport = document.getElementById('wallViewport');
         const panorama = document.getElementById('panorama');
@@ -682,61 +686,138 @@
         const signerInput = document.getElementById('signer');
         const charCountDisplay = document.getElementById('charCount');
         const toast = document.getElementById('toast');
+        const statusText = document.getElementById('connection-status');
+        const pulseDot = document.getElementById('pulse-dot');
 
-        // 성벽 초기화 및 시민 메시지 성석들 로드
-        function initializeWall() {
-            // 성벽 격자에 은은한 가상 데이터 배치
-            for (let i = 0; i < 35; i++) {
-                const data = initialStones[i % initialStones.length];
-                // 3의 배수들은 더 밝게 빛나는(glowing) 성돌로 활성화
-                const isGlowing = (i % 3 === 0);
-                createStoneElement(data.text, data.creator, false, isGlowing);
+        try {
+            if (typeof __firebase_config !== 'undefined') {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                isFirebaseActive = true;
             }
-            
-            // 캠페인 영역(성벽 중앙 그리드) 위치로 최초 뷰포트 정렬
-            setTimeout(() => {
-                alignViewportToSection('캠페인');
-            }, 600);
+        } catch (e) {
+            console.error("클라우드 시스템 설정 로드 오류. 로컬 데모 모드로 작동합니다:", e);
         }
 
-        // 개별 성돌 요소 생성 함수
-        function createStoneElement(text, creator, isNew = false, isGlowing = false) {
+        // 인증 처리 (비동기) - 규칙 3 적용
+        async function authenticateUser() {
+            if (!isFirebaseActive) return null;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    return (await signInWithCustomToken(auth, __initial_auth_token)).user;
+                } else {
+                    return (await signInAnonymously(auth)).user;
+                }
+            } catch (err) {
+                console.warn("인증 처리 중 오류 발생, 익명으로 재시도 중...", err);
+                try {
+                    return (await signInAnonymously(auth)).user;
+                } catch (anonErr) {
+                    console.error("인증 최종 실패:", anonErr);
+                    return null;
+                }
+            }
+        }
+
+        // 성벽 UI 업데이트 함수 (가상 데이터 + 실시간 시민 데이터를 믹스하여 35개 격자 채움)
+        function renderWall(realStones) {
+            wallGrid.innerHTML = '';
+            
+            // 실시간 데이터 정렬 (시간역순으로 가장 최근 성돌이 좌상단 배치)
+            const sortedRealStones = [...realStones].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            
+            const totalSlots = 35;
+            for (let i = 0; i < totalSlots; i++) {
+                let stoneData;
+                let isReal = false;
+                let isGlowing = false;
+
+                if (i < sortedRealStones.length) {
+                    stoneData = sortedRealStones[i];
+                    isReal = true;
+                    isGlowing = true; // 실제 시민 참여 성돌은 언제나 신비로운 황금빛 맥동!
+                } else {
+                    // 부족한 칸은 기본 데코레이션 성석으로 채움
+                    const localIdx = (i - sortedRealStones.length) % initialStones.length;
+                    stoneData = initialStones[localIdx];
+                    isGlowing = (i % 3 === 0); // 기본 성석 중 일부만 은은하게 발광
+                }
+
+                createStoneElement(stoneData.text, stoneData.creator, isReal, isGlowing);
+            }
+
+            // 카운터 갱신 (전체 벽돌 갯수 + 실시간 누적된 성돌 수)
+            const currentTotal = baseCount + realStones.length;
+            brickCounter.innerText = currentTotal.toLocaleString();
+        }
+
+        // 개별 성돌 엘리먼트 생성
+        function createStoneElement(text, creator, isReal = false, isGlowing = false) {
             const stone = document.createElement('div');
             stone.className = 'stone-block';
             
             if (isGlowing) {
                 stone.classList.add('glowing');
             }
-            if (isNew) {
-                stone.className = 'stone-block just-added glowing';
-            }
 
-            // 축약 텍스트 처리
+            // 글자 축약 처리
             const shortText = text.length > 10 ? text.substring(0, 10) + '..' : text;
-
             stone.innerHTML = `
                 <div>${shortText}</div>
                 <div class="stone-creator">${creator}</div>
             `;
 
-            // 클릭 시 등재 기원 기증 증서 팝업 등장
+            // 클릭했을 때 발급서 모달 보기
             stone.addEventListener('click', () => {
-                openModal(text, creator, '디지털 각자성석 증서');
+                openModal(text, creator, isReal ? '실시간 참여 각자성석 증서' : '디지털 각자성석 증서');
             });
 
-            // 그리드의 앞쪽에 추가하여 최신 성돌이 자연스럽게 좌측 상단부터 배치되게 함
-            wallGrid.insertBefore(stone, wallGrid.firstChild);
-
-            // 새 성돌 생성 후 6초가 지나면 눈부신 화이트 발광에서 은은한 황금 네온 발광으로 톤 동화
-            if (isNew) {
-                setTimeout(() => {
-                    stone.classList.remove('just-added');
-                }, 6000);
-            }
+            wallGrid.appendChild(stone);
         }
 
-        // 새로운 성돌 쌓기 및 카운터 업그레이드
-        function stackNewStone() {
+        // 실시간 동기화 시작
+        async function startSync() {
+            if (!isFirebaseActive) {
+                statusText.innerText = "한양도성 세계유산 등재 캠페인 (데모 모드)";
+                pulseDot.style.backgroundColor = "#EF4444"; // 오프라인 레드 표시
+                renderWall([]);
+                return;
+            }
+
+            const user = await authenticateUser();
+            if (!user) {
+                statusText.innerText = "인증 오류 (데모 모드로 전환)";
+                pulseDot.style.backgroundColor = "#F59E0B";
+                renderWall([]);
+                return;
+            }
+
+            statusText.innerText = "한양도성 세계유산 등재 캠페인 (실시간 연동 완료)";
+            pulseDot.style.backgroundColor = "#10B981"; // 정상 동기화 초록 표시
+
+            // 규칙 1: Strict Paths 적용
+            const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'stones');
+
+            // 실시간 리스너 연결 (에러 핸들러 콜백 필수 포함)
+            onSnapshot(collectionRef, (snapshot) => {
+                const stonesList = [];
+                snapshot.forEach((doc) => {
+                    stonesList.push({ id: doc.id, ...doc.data() });
+                });
+                
+                activeRealStones = stonesList;
+                renderWall(stonesList);
+            }, (error) => {
+                console.error("실시간 데이터 연동 중단:", error);
+                statusText.innerText = "연동 실패 (재연결 시도 중...)";
+                pulseDot.style.backgroundColor = "#EF4444";
+            });
+        }
+
+        // 새로운 성돌 실시간 업로드
+        async function stackNewStone() {
             const text = messageInput.value.trim();
             const creatorName = signerInput.value.trim() || "무명시민";
 
@@ -745,46 +826,76 @@
                 return;
             }
 
-            // 성돌 생성 및 오버레이 장착
-            createStoneElement(text, creatorName, true, true);
+            if (!isFirebaseActive) {
+                // 파이어베이스 비연동 상태일 때 로컬 전용 추가
+                const localDemoItem = { text, creator: creatorName, timestamp: Date.now() };
+                const updatedList = [localDemoItem, ...activeRealStones];
+                activeRealStones = updatedList;
+                renderWall(updatedList);
+                triggerToast();
+                resetForm();
+                return;
+            }
 
-            // 실시간 쌓인 벽돌 갯수 카운터 증가 및 이펙트
-            currentBrickCount++;
-            brickCounter.innerText = currentBrickCount.toLocaleString();
-            
+            // 규정 준수 검사
+            if (!auth.currentUser) {
+                console.warn("사용자가 인증되지 않았습니다.");
+                return;
+            }
+
+            try {
+                // 규칙 1: Strict Paths 경로 적용
+                const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'stones');
+                await addDoc(collectionRef, {
+                    text: text,
+                    creator: creatorName,
+                    timestamp: Date.now()
+                });
+
+                triggerToast();
+                resetForm();
+                
+                // 타임라인을 캠페인 영역으로 카메라 부드럽게 무빙
+                alignViewportToSection('캠페인');
+
+            } catch (err) {
+                console.error("성돌 적재 오류:", err);
+            }
+        }
+
+        // 폼 리셋
+        function resetForm() {
+            messageInput.value = '';
+            signerInput.value = '';
+            charCountDisplay.innerText = "0 / 50";
+        }
+
+        // 토스트 알림 작동
+        function triggerToast() {
             counterCard.classList.add('pulse');
             setTimeout(() => {
                 counterCard.classList.remove('pulse');
             }, 800);
 
-            // 알림 토스트 출력
             toast.classList.add('show');
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 2500);
-
-            // 입력 필드 초기화
-            messageInput.value = '';
-            signerInput.value = '';
-            charCountDisplay.innerText = "0 / 50";
-
-            // 성벽이 쌓이는 곳으로 자동 부드러운 카메라 무빙 정렬
-            alignViewportToSection('캠페인');
         }
 
-        // 글자 수 제한 실시간 체크
+        // 이벤트 바인딩
+        document.getElementById('submit-btn').addEventListener('click', stackNewStone);
+        
         messageInput.addEventListener('input', () => {
-            const length = messageInput.value.length;
-            charCountDisplay.innerText = `${length} / 50`;
+            charCountDisplay.innerText = `${messageInput.value.length} / 50`;
         });
 
-        // 엔터키 지원
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') stackNewStone();
         });
 
-        // 디지털 각자성석 증서 모달 오픈
-        function openModal(text, creator, typeTitle) {
+        // 증서 모달 오픈
+        window.openModal = function(text, creator, typeTitle) {
             document.getElementById('modalType').innerText = typeTitle;
             document.getElementById('modalMessage').innerText = `"${text}"`;
             document.getElementById('modalCreator').innerText = `각자(刻字) 시민: ${creator}`;
@@ -794,27 +905,25 @@
             document.getElementById('modalDate').innerText = dateStr;
 
             document.getElementById('stoneModal').classList.add('show');
-        }
+        };
 
-        function closeModal() {
+        window.closeModal = function() {
             document.getElementById('stoneModal').classList.remove('show');
-        }
+        };
 
-        // 지도 핫스팟 터치 정보 모달 출력
-        function showHotspot(title, description) {
+        window.showHotspot = function(title, description) {
             openModal(description, '한양도성 지킴이', title);
-        }
+        };
 
-        // 타임라인 내비게이션 및 뷰포트 오토 스크롤 제어
-        function navigateTimeline(section, tabBtn) {
+        // 타임라인 내비게이션
+        window.navigateTimeline = function(section, tabBtn) {
             const tabs = document.querySelectorAll('.timeline-tab');
             tabs.forEach(tab => tab.classList.remove('active'));
             tabBtn.classList.add('active');
 
             alignViewportToSection(section);
-        }
+        };
 
-        // 파노라마 특정 섹션으로 뷰포트를 수평 스크롤 이동시키는 로직
         function alignViewportToSection(section) {
             const maxScroll = panorama.clientWidth - wallViewport.clientWidth;
             if (section === '원형') {
@@ -822,7 +931,6 @@
             } else if (section === '훼손') {
                 wallViewport.scrollLeft = maxScroll * 0.35;
             } else if (section === '캠페인') {
-                // 디지털 성돌 오버레이가 완벽하게 보이는 중간 영역 정렬
                 const gridLeft = wallGrid.offsetLeft;
                 const gridWidth = wallGrid.clientWidth;
                 const targetScroll = gridLeft - (wallViewport.clientWidth / 2) + (gridWidth / 2);
@@ -832,9 +940,10 @@
             }
         }
 
-        // 실행 개시
+        // 초기 시작
         window.onload = function() {
-            initializeWall();
+            startSync();
+            setTimeout(() => alignViewportToSection('캠페인'), 600);
         };
     </script>
 </body>
