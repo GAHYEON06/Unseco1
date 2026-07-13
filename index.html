@@ -687,22 +687,19 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, addDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        
-        // [필독] 깃허브 페이지(github.io) 실시간 데이터 누적을 위한 Firebase 설정
-        
-        const firebaseConfig = {
-              apiKey: "AIzaSyCGU1BEyGMCehMNq2vQyJQV6xOQM0qgBg0",
-              authDomain: "database-4509e.firebaseapp.com",
-              projectId: "database-4509e",
-              storageBucket: "database-4509e.firebasestorage.app",
-              messagingSenderId: "421076649255",
-              appId: "1:421076649255:web:f93b6f4d13e9d20d9d9502",
-              measurementId: "G-H9WLGSHGXE"
-            };
-       
+        // 사용자 고유 Firebase 인증 정보 매핑 완료
+        const myFirebaseConfig = {
+            apiKey: "AIzaSyCGU1BEyGMCehMNq2vQyJQV6xOQM0qgBg0",
+            authDomain: "database-4509e.firebaseapp.com",
+            projectId: "database-4509e",
+            storageBucket: "database-4509e.firebasestorage.app",
+            messagingSenderId: "421076649255",
+            appId: "1:421076649255:web:f93b6f4d13e9d20d9d9502",
+            measurementId: "G-H9WLGSHGXE"
+        };
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'hanyangdoseong-wall-prod';
         let db, auth;
@@ -740,15 +737,13 @@
 
         // Firebase 초기화 판단 로직 보완
         try {
-            // 1. 유저가 직접 입력한 깃허브용 Firebase 설정값이 존재하는지 최우선 체크
-            if (myFirebaseConfig && myFirebaseConfig.apiKey !== "YOUR_API_KEY") {
+            if (myFirebaseConfig && myFirebaseConfig.apiKey && myFirebaseConfig.apiKey !== "YOUR_API_KEY") {
                 const app = initializeApp(myFirebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 isFirebaseActive = true;
                 console.log("시민 지정 외부 데이터베이스(Firebase) 정상 연결 완료");
             } 
-            // 2. 플랫폼 샌드박스 내부 변수 자동 로드 시도
             else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 let firebaseConfig;
                 if (typeof __firebase_config === 'string') {
@@ -765,7 +760,7 @@
             console.error("데이터베이스 초기화 과정 오류 발생:", e);
         }
 
-        // 인증 처리 (비동기) - 규칙 3 적용 및 재시도 큐 구축
+        // 인증 처리 (비동기)
         async function authenticateUser() {
             if (!isFirebaseActive) return null;
             try {
@@ -864,7 +859,6 @@
 
             let citIdx = 0;
             const virtualInterval = setInterval(() => {
-                // 파이어베이스가 도중에라도 살아나 활성화 상태가 되면 인터벌을 중단시킴
                 if (isFirebaseActive && auth.currentUser) {
                     clearInterval(virtualInterval);
                     return;
@@ -904,14 +898,13 @@
             // 가이드 버튼 숨김 (성공적으로 서버 연동 시)
             document.getElementById('github-guide-btn').style.display = 'none';
 
-            // 규칙 규정 준수: user 고유 식별 코드를 UI 상태 표시창에 투명하게 출력
-            statusText.innerText = `한양도성 캠페인 (연동자 ID: ${user.uid})`;
+            // user 고유 식별 코드를 UI 상태 표시창에 투명하게 출력
+            statusText.innerText = `한양도성 캠페인 (연동자 ID: ${user.uid.substring(0, 8)}...)`;
             pulseDot.style.backgroundColor = "#10B981"; // 정상 동기화 초록 표시
 
-            // 규칙 1: Strict Paths 적용
             const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'stones');
 
-            // 실시간 리스너 연결 (에러 핸들러 콜백 필수 포함하여 오류 시 안전 중단 방지)
+            // 실시간 리스너 연결
             onSnapshot(collectionRef, (snapshot) => {
                 const stonesList = [];
                 snapshot.forEach((doc) => {
@@ -937,7 +930,6 @@
                 return;
             }
 
-            // 파이어베이스 연결 정보가 존재하지 않는 완전히 닫힌 로컬 오프라인 환경인 경우
             if (!isFirebaseActive) {
                 const localDemoItem = { text, creator: creatorName, timestamp: Date.now() };
                 activeRealStones.unshift(localDemoItem);
@@ -947,7 +939,6 @@
                 return;
             }
 
-            // 인증이 지연되어 비어있는 경우, 성돌을 쓰기 전에 즉시 동기화 로그인 완료 대기
             statusText.innerText = "각자성석 기록 중 (인증 확인)...";
             let currentUser = auth.currentUser;
             if (!currentUser) {
@@ -966,7 +957,6 @@
             }
 
             try {
-                // 규칙 1: Strict Paths 경로 적용
                 const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'stones');
                 await addDoc(collectionRef, {
                     text: text,
@@ -979,7 +969,7 @@
                 
                 // 타임라인을 캠페인 영역으로 카메라 부드럽게 무빙
                 alignViewportToSection('캠페인');
-                statusText.innerText = `한양도성 캠페인 (연동자 ID: ${currentUser.uid})`;
+                statusText.innerText = `한양도성 캠페인 (연동자 ID: ${currentUser.uid.substring(0, 8)}...)`;
 
             } catch (err) {
                 console.error("실시간 서버에 성돌 추가 중 요류:", err);
