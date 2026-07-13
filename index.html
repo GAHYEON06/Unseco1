@@ -691,7 +691,6 @@
 
         try {
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                // 타입 안정성 검사: 문자열인 경우에만 JSON parsing을 진행하여 형변환 에러 사전 차단
                 let firebaseConfig;
                 if (typeof __firebase_config === 'string') {
                     firebaseConfig = JSON.parse(__firebase_config);
@@ -707,17 +706,19 @@
             console.error("클라우드 시스템 설정 로드 오류. 라이브 시뮬레이션 모드로 전환합니다:", e);
         }
 
-        // 인증 처리 (비동기) - 규칙 3 적용
+        // 인증 처리 (비동기) - 규칙 3 적용 및 재시도 큐 구축
         async function authenticateUser() {
             if (!isFirebaseActive) return null;
             try {
+                if (auth.currentUser) return auth.currentUser;
+                
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     return (await signInWithCustomToken(auth, __initial_auth_token)).user;
                 } else {
                     return (await signInAnonymously(auth)).user;
                 }
             } catch (err) {
-                console.warn("인증 처리 중 오류 발생, 익명으로 재시도 중...", err);
+                console.warn("인증 처리 중 일시적 오류 발생, 익명으로 즉시 우회 재시도 중...", err);
                 try {
                     return (await signInAnonymously(auth)).user;
                 } catch (anonErr) {
@@ -781,10 +782,10 @@
             wallGrid.appendChild(stone);
         }
 
-        // 실시간 가상 동기화 시뮬레이터 (진짜 DB가 아직 오프라인일 때 연동 느낌 연출)
+        // 실시간 가상 동기화 시뮬레이터 (파이어베이스 오프라인인 경우를 위한 차선적 경험 유지장치)
         function startVirtualSync() {
-            statusText.innerText = "한양도성 세계유산 등재 캠페인 (실시간 연동 완료)";
-            pulseDot.style.backgroundColor = "#10B981"; // 그린 네온 램프 켬
+            statusText.innerText = "한양도성 캠페인 (시뮬레이션 모드)";
+            pulseDot.style.backgroundColor = "#FBBF24"; // 대기 및 가상 연결 주황색 신호
             
             renderWall(activeRealStones);
 
@@ -798,7 +799,12 @@
             ];
 
             let citIdx = 0;
-            setInterval(() => {
+            const virtualInterval = setInterval(() => {
+                // 파이어베이스가 도중에라도 살아나 활성화 상태가 되면 인터벌을 중단시킴
+                if (isFirebaseActive && auth.currentUser) {
+                    clearInterval(virtualInterval);
+                    return;
+                }
                 const citizen = virtualCitizens[citIdx % virtualCitizens.length];
                 const simulatedStone = {
                     text: citizen.text,
@@ -806,7 +812,6 @@
                     timestamp: Date.now()
                 };
                 
-                // 새로운 리얼 성돌 배열에 누적
                 activeRealStones.unshift(simulatedStone);
                 renderWall(activeRealStones);
                 triggerToast();
@@ -818,25 +823,28 @@
         // 실시간 동기화 시작
         async function startSync() {
             if (!isFirebaseActive) {
-                // 파이어베이스 설정이 유실되었거나 로컬 테스트 중인 경우, "데모 모드" 대신 완벽한 연결 시뮬레이터 실행
                 startVirtualSync();
                 return;
             }
+
+            statusText.innerText = "한양도성 캠페인 (서버 연결중...)";
+            pulseDot.style.backgroundColor = "#FBBF24";
 
             const user = await authenticateUser();
             if (!user) {
-                // 인증 실패 시에도 유연하게 시뮬레이터로 우아한 서비스 제공
+                console.warn("인증 처리 미완료로 로컬 시뮬레이션 인터페이스가 대신 활성화됩니다.");
                 startVirtualSync();
                 return;
             }
 
-            statusText.innerText = "한양도성 세계유산 등재 캠페인 (실시간 연동 완료)";
+            // 규칙 규정 준수: user 고유 식별 코드를 UI 상태 표시창에 투명하게 출력
+            statusText.innerText = `한양도성 캠페인 (연동자 ID: ${user.uid})`;
             pulseDot.style.backgroundColor = "#10B981"; // 정상 동기화 초록 표시
 
             // 규칙 1: Strict Paths 적용
             const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'stones');
 
-            // 실시간 리스너 연결 (에러 핸들러 콜백 필수 포함)
+            // 실시간 리스너 연결 (에러 핸들러 콜백 필수 포함하여 오류 시 안전 중단 방지)
             onSnapshot(collectionRef, (snapshot) => {
                 const stonesList = [];
                 snapshot.forEach((doc) => {
@@ -846,8 +854,9 @@
                 activeRealStones = stonesList;
                 renderWall(stonesList);
             }, (error) => {
-                console.error("실시간 데이터 연동 중단:", error);
-                startVirtualSync(); // 네트워크 차단 등 비상시 시뮬레이션 즉각 교체 구동
+                console.error("데이터 실시간 동기화 오류로 로컬 연결 대기상태로 전환합니다:", error);
+                statusText.innerText = "동기화 일시 중단 (서버 통신 대기)";
+                pulseDot.style.backgroundColor = "#EF4444"; // 경고 빨간색 불빛
             });
         }
 
@@ -861,8 +870,8 @@
                 return;
             }
 
+            // 파이어베이스 연결 정보가 존재하지 않는 완전히 닫힌 로컬 오프라인 환경인 경우
             if (!isFirebaseActive) {
-                // 파이어베이스 비연동 상태일 때 로컬 시뮬레이션 배열에 즉시 누적
                 const localDemoItem = { text, creator: creatorName, timestamp: Date.now() };
                 activeRealStones.unshift(localDemoItem);
                 renderWall(activeRealStones);
@@ -871,13 +880,21 @@
                 return;
             }
 
-            // 규정 준수 검사
-            if (!auth.currentUser) {
+            // 인증이 지연되어 비어있는 경우, 성돌을 쓰기 전에 즉시 동기화 로그인 완료 대기
+            statusText.innerText = "각자성석 기록 중 (인증 확인)...";
+            let currentUser = auth.currentUser;
+            if (!currentUser) {
+                currentUser = await authenticateUser();
+            }
+
+            if (!currentUser) {
+                console.warn("인증 세션이 연결되지 않아 로컬 브라우저 세션에 임시 반영합니다.");
                 const localDemoItem = { text, creator: creatorName, timestamp: Date.now() };
                 activeRealStones.unshift(localDemoItem);
                 renderWall(activeRealStones);
                 triggerToast();
                 resetForm();
+                statusText.innerText = "서버 통신 원활하지 않음 (로컬 임시 기록)";
                 return;
             }
 
@@ -895,9 +912,11 @@
                 
                 // 타임라인을 캠페인 영역으로 카메라 부드럽게 무빙
                 alignViewportToSection('캠페인');
+                statusText.innerText = `한양도성 캠페인 (연동자 ID: ${currentUser.uid})`;
 
             } catch (err) {
-                console.error("성돌 적재 오류:", err);
+                console.error("실시간 서버에 성돌 추가 중 요류:", err);
+                statusText.innerText = "연동 실패 (인터넷 상태 확인)";
             }
         }
 
