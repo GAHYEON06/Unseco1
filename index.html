@@ -703,7 +703,7 @@
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'hanyangdoseong-wall-prod';
         let db, auth;
-        let myFirebaseActive = false;
+        let isFirebaseActive = false;
 
         // 야경 성벽 기본 데코레이션용 성석 데이터
         const initialStones = [
@@ -719,7 +719,7 @@
             { text: "시민의 아름다운 마음으로 완성!", creator: "한소율 (은평)" }
         ];
 
-        let baseCount = 52148;
+        let baseCount = 0;
         let activeRealStones = [];
 
         // UI 요소 캐싱
@@ -737,7 +737,7 @@
 
         // Firebase 초기화 판단 로직 보완
         try {
-            if (myFirebaseConfig && myFirebaseConfig.apiKey && myFirebaseConfig.apiKey !== "YOUR_API_KEY") {
+            if (myFirebaseConfig && myFirebaseConfig.apiKey && myFirebaseConfig.apiKey !== "AIzaSyCGU1BEyGMCehMNq2vQyJQV6xOQM0qgBg0") {
                 const app = initializeApp(myFirebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
