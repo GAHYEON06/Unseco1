@@ -1,0 +1,10 @@
+{
+  "name": "hanyangdoseong-digital-brick",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "디지털 성돌 — 시민의 메시지로 쌓아가는 한양도성",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

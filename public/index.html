@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="어두운 한양도성 성벽에 시민의 메시지를 남기면 성돌 하나에 불이 켜집니다. 상징적 복원 캠페인.">
+<meta property="og:title" content="디지털 성돌: 시민의 메시지로 쌓아가는 한양도성">
+<meta property="og:description" content="메시지를 남기면 성돌 하나에 불이 켜집니다.">
+<meta property="og:image" content="/assets/og.jpg">
+<meta name="theme-color" content="#05070d">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>디지털 성돌: 시민의 메시지로 쌓아가는 한양도성</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script type="module" src="/app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink-deep:#05070d;
+    --night:#0d1626;
+    --gold:#f2b545;
+    --gold-soft:#f6c876;
+    --gold-deep:#c07f24;
+    --paper:#f6efe0;
+    --mist:#a9b3c7;
+    --mist-dim:#6b7690;
+    --glass:rgba(6,10,18,0.60);
+    --glass-strong:rgba(5,8,15,0.82);
+    --glass-border:rgba(242,181,69,0.26);
+    --hairline:rgba(246,239,224,0.14);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink-deep);
+    color:var(--paper);
+    font-family:'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+    overflow:hidden;
+    height:100dvh;
+    width:100vw;
+  }
+  h1,h2,h3{margin:0;}
+  button{font-family:inherit;}
+  ::selection{background:rgba(242,181,69,0.35); color:var(--paper);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ---------- stage / scroll wall ---------- */
+  .stage{
+    position:fixed; inset:0;
+    height:100dvh; width:100vw;
+    overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 0%, #101c30 0%, var(--ink-deep) 62%);
+  }
+
+  .scrollwrap{
+    position:absolute; inset:0;
+    overflow-x:auto; overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-x;
+    cursor:grab;
+    scrollbar-width:none;
+  }
+  .scrollwrap::-webkit-scrollbar{display:none;}
+  .scrollwrap.grabbing{cursor:grabbing;}
+
+  .wallcanvas{
+    display:flex;
+    align-items:stretch;
+    height:100dvh;
+    width:max-content;
+  }
+
+  .photoframe{
+    position:relative;
+    height:100%;
+    aspect-ratio:1176/646;
+    flex:0 0 auto;
+    overflow:hidden;
+  }
+  .photoframe img{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    display:block;
+    user-select:none;
+    -webkit-user-drag:none;
+    pointer-events:none;
+  }
+  .photoframe.echo{
+    filter:brightness(0.5) saturate(0.68) blur(0.3px);
+  }
+  .photoframe.echo.left{transform:scaleX(-1);}
+  .photoframe.echo.right{transform:scaleX(-1);}
+  .photoframe.echo::after{
+    content:"";
+    position:absolute; inset:0;
+  }
+  /* both echoes are mirrored, so the fade is written per side in source space */
+  .photoframe.echo.left::after{
+    background:linear-gradient(90deg, rgba(5,7,13,0) 0%, rgba(5,7,13,0) 42%, rgba(5,7,13,0.85) 88%, var(--ink-deep) 100%);
+  }
+  .photoframe.echo.right::after{
+    background:linear-gradient(90deg, var(--ink-deep) 0%, rgba(5,7,13,0.85) 12%, rgba(5,7,13,0) 58%, rgba(5,7,13,0) 100%);
+  }
+  .photoframe.center::after{
+    content:"";
+    position:absolute; inset:0;
+    box-shadow:inset 0 0 min(14vw,220px) 10px rgba(5,7,13,0.55);
+    pointer-events:none;
+  }
+
+  .glowcanvas{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    display:block;
+    pointer-events:none;
+    mix-blend-mode:screen;
+  }
+
+  .firstprompt{
+    position:fixed; left:50%; top:46%;
+    z-index:14;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    pointer-events:none;
+    transition:opacity 0.9s ease, transform 0.9s ease;
+  }
+  .firstprompt.gone{opacity:0; transform:translate(-50%,-58%);}
+  .firstprompt .lead{
+    font-family:'Gowun Batang','Noto Serif KR',serif;
+    font-size:clamp(15px,1.7vw,20px);
+    color:rgba(246,239,224,0.92);
+    text-shadow:0 2px 16px rgba(0,0,0,0.85);
+  }
+  .firstprompt .sub{
+    margin-top:8px;
+    font-size:12.5px;
+    color:rgba(246,200,118,0.9);
+    letter-spacing:0.02em;
+    text-shadow:0 2px 12px rgba(0,0,0,0.85);
+  }
+
+  /* brick / stone message tiles */
+  .tile{
+    position:absolute;
+    transform:translate(-50%,-50%) rotate(var(--tilt,0deg));
+    padding:5px 10px;
+    border-radius:4px;
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    line-height:1.25;
+    white-space:nowrap;
+    color:#ffdf9e;
+    background:rgba(28,15,4,0.74);
+    border:1.4px solid rgba(246,186,86,0.95);
+    text-shadow:0 0 7px rgba(255,190,90,0.85);
+    box-shadow:
+      0 0 12px 2px rgba(242,170,60,0.55),
+      inset 0 0 10px rgba(255,190,90,0.30);
+    animation:ember 4.2s ease-in-out infinite;
+    animation-delay:var(--delay,0s);
+    pointer-events:none;
+    backdrop-filter:blur(1px);
+  }
+  .tile.accent{
+    color:#cdefff;
+    border-color:rgba(140,214,255,0.95);
+    text-shadow:0 0 7px rgba(140,214,255,0.85);
+    box-shadow:0 0 12px 2px rgba(90,180,255,0.55), inset 0 0 10px rgba(140,214,255,0.28);
+  }
+  .tile.new{animation:arrive 0.75s cubic-bezier(.2,.9,.25,1.2), ember 4.2s ease-in-out infinite 0.75s;}
+  @keyframes ember{
+    0%,100%{ box-shadow:0 0 12px 2px rgba(242,170,60,0.5), inset 0 0 10px rgba(255,190,90,0.28); }
+    50%{ box-shadow:0 0 20px 5px rgba(242,170,60,0.8), inset 0 0 14px rgba(255,205,120,0.45); }
+  }
+  @keyframes arrive{
+    0%{ transform:translate(-50%,-50%) rotate(var(--tilt,0deg)) scale(0.25); opacity:0; }
+    60%{ opacity:1; }
+    100%{ transform:translate(-50%,-50%) rotate(var(--tilt,0deg)) scale(1); opacity:1; }
+  }
+
+  .pin{
+    position:absolute;
+    transform:translate(-50%,-100%);
+    padding:6px 14px;
+    border-radius:999px;
+    background:rgba(20,15,4,0.55);
+    border:1px solid var(--glass-border);
+    color:var(--gold-soft);
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    backdrop-filter:blur(3px);
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  .pin::after{
+    content:"";
+    position:absolute; left:50%; bottom:-5px;
+    width:8px; height:8px;
+    background:inherit;
+    border-right:1px solid var(--glass-border);
+    border-bottom:1px solid var(--glass-border);
+    transform:translateX(-50%) rotate(45deg);
+  }
+
+  /* ---------- fixed chrome ---------- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px clamp(16px,4vw,40px);
+    background:linear-gradient(180deg, rgba(4,6,11,0.78) 0%, rgba(4,6,11,0.35) 70%, transparent 100%);
+    z-index:20;
+    pointer-events:none;
+  }
+  .topbar-left{display:flex; align-items:center; gap:28px; pointer-events:auto;}
+  .brandmark{width:26px; height:26px; color:var(--gold); flex:0 0 auto;}
+  nav.mainnav{display:flex; gap:22px;}
+  nav.mainnav a{
+    color:var(--mist);
+    text-decoration:none;
+    font-size:14px;
+    font-weight:500;
+    padding-bottom:4px;
+    border-bottom:2px solid transparent;
+    transition:color 0.2s ease, border-color 0.2s ease;
+  }
+  nav.mainnav a:hover{color:var(--paper);}
+  nav.mainnav a.active{color:var(--paper); border-color:var(--gold);}
+
+  .stats{text-align:right; pointer-events:auto;}
+  .stats .main{
+    font-size:15px; font-weight:600; color:var(--paper);
+    font-variant-numeric:tabular-nums;
+  }
+  .stats .main b{color:var(--gold); font-weight:700;}
+  .stats .today{
+    margin-top:3px;
+    font-size:12.5px; color:var(--mist);
+    font-variant-numeric:tabular-nums;
+  }
+  .stats .today b{color:var(--gold-soft); font-weight:600;}
+  .flash{animation:flash 0.6s ease;}
+  @keyframes flash{ 0%{opacity:0.35; transform:translateY(-2px);} 100%{opacity:1; transform:none;} }
+
+  .titleblock{
+    position:fixed; left:clamp(16px,4vw,40px); top:76px;
+    z-index:15; pointer-events:none;
+    max-width:min(72vw,540px);
+  }
+  .titleblock h1{
+    font-family:'Gowun Batang', 'Noto Serif KR', serif;
+    font-size:clamp(19px,2.6vw,30px);
+    line-height:1.35;
+    color:var(--paper);
+    text-shadow:0 2px 14px rgba(0,0,0,0.6);
+  }
+  .titleblock h1 em{
+    font-style:normal; color:var(--gold-soft);
+  }
+  .titleblock p{
+    margin-top:6px;
+    font-size:13px;
+    color:var(--mist);
+    letter-spacing:0.02em;
+  }
+
+  .scrollhint{
+    position:fixed; left:50%; bottom:206px;
+    transform:translateX(-50%);
+    display:flex; align-items:center; gap:10px;
+    font-size:12.5px; color:var(--mist);
+    background:var(--glass);
+    border:1px solid var(--hairline);
+    padding:7px 16px; border-radius:999px;
+    z-index:14;
+    transition:opacity 0.5s ease;
+    pointer-events:none;
+  }
+  .scrollhint.hidden{opacity:0;}
+  .scrollhint svg{width:14px; height:14px; color:var(--gold);}
+
+  .console{
+    position:fixed; left:0; right:0; bottom:0;
+    z-index:20;
+    padding:18px clamp(16px,4vw,40px) 22px;
+    background:linear-gradient(0deg, rgba(4,6,11,0.92) 0%, rgba(4,6,11,0.72) 60%, transparent 100%);
+  }
+  .console-inner{
+    max-width:920px;
+    margin:0 auto;
+  }
+
+  .timeline{
+    display:flex; align-items:center; justify-content:center;
+    gap:clamp(6px,2vw,14px);
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .timeline .step{
+    font-size:12.5px; color:var(--mist-dim);
+    padding:6px 4px;
+    position:relative;
+    white-space:nowrap;
+  }
+  .timeline .step.current{
+    color:var(--ink-deep);
+    background:var(--gold);
+    border-radius:999px;
+    padding:6px 14px;
+    font-weight:700;
+  }
+  .timeline .sep{width:20px; height:1px; background:var(--hairline);}
+
+  .composer{
+    display:flex; align-items:center; gap:10px;
+    background:var(--glass-strong);
+    border:1px solid var(--glass-border);
+    border-radius:12px;
+    padding:6px 6px 6px 18px;
+  }
+  .composer label{display:none;}
+  .composer input{
+    flex:1;
+    background:transparent; border:none; outline:none;
+    color:var(--paper);
+    font-family:inherit;
+    font-size:14.5px;
+    padding:10px 4px;
+  }
+  .composer input::placeholder{color:var(--mist-dim);}
+  .composer button{
+    display:flex; flex-direction:column; align-items:center; line-height:1.15;
+    background:linear-gradient(180deg,#ffd583,var(--gold) 55%,var(--gold-deep));
+    color:#2c1a05;
+    border:none; border-radius:8px;
+    padding:9px 18px;
+    font-weight:700; font-size:14px;
+    cursor:pointer;
+    transition:filter 0.15s ease, transform 0.15s ease;
+    flex:0 0 auto;
+  }
+  .composer button span{font-size:10.5px; font-weight:500; opacity:0.75;}
+  .composer button:hover{filter:brightness(1.08);}
+  .composer button:active{transform:scale(0.97);}
+  .composer button:disabled{opacity:0.5; cursor:not-allowed;}
+
+  .console-hint{
+    margin:10px 2px 0;
+    font-size:11.5px;
+    color:var(--mist-dim);
+    text-align:center;
+  }
+
+  .toast{
+    position:fixed; left:50%; bottom:150px;
+    transform:translateX(-50%) translateY(8px);
+    background:var(--glass-strong);
+    border:1px solid var(--glass-border);
+    color:var(--gold-soft);
+    font-size:12.5px; font-weight:600;
+    padding:8px 16px; border-radius:999px;
+    z-index:25;
+    opacity:0;
+    transition:opacity 0.35s ease, transform 0.35s ease;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:720px){
+    nav.mainnav{display:none;}
+    .titleblock{max-width:80vw; top:70px;}
+    .titleblock p{display:none;}
+    .stats .today{display:none;}
+    .scrollhint{bottom:196px; font-size:11px; padding:6px 12px; gap:7px; white-space:nowrap;}
+    .firstprompt{top:40%;}
+    .console{padding:14px 14px 18px;}
+    .timeline{gap:6px;}
+    .timeline .step{font-size:11px;}
+    .timeline .sep{width:10px;}
+    .composer{padding:5px 5px 5px 14px;}
+    .composer button span{display:none;}
+  }
+</style>
+
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="scrollwrap" id="scrollwrap">
+    <div class="wallcanvas" id="wallcanvas">
+      <div class="photoframe echo left">
+        <img src="/assets/wall.jpg" alt="" />
+      </div>
+      <div class="photoframe center" id="centerFrame">
+        <img src="/assets/wall.jpg" alt="한양도성 낙산 구간 야경, 성곽과 남산서울타워, 도심 스카이라인" />
+        <canvas class="glowcanvas" id="glowCanvas"></canvas>
+        <div class="pin" id="pinRoad" style="left:61%; top:69%;">황학동 국도</div>
+        <div class="pin" id="pinNamsan" style="left:50%; top:16%;">남산</div>
+        <div class="pin" id="pinInwang" style="left:88%; top:28%;">인왕산</div>
+        <div class="tiles" id="tiles"></div>
+
+      </div>
+      <div class="photoframe echo right">
+        <img src="/assets/wall.jpg" alt="" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <svg class="brandmark" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 27H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M7 27V14M25 27V14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M4 14L16 5L28 14" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M13 27V19H19V27" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+    <nav class="mainnav">
+      <a href="#" class="active">홈</a>
+      <a href="#">소개</a>
+      <a href="#">성돌 갤러리</a>
+      <a href="#">참여 현황</a>
+    </nav>
+  </div>
+  <div class="stats">
+    <div class="main" id="totalCount">실시간 참여 완료: <b>52,148</b></div>
+    <div class="today" id="todayCount">오늘 참여: <b>+3,412</b></div>
+  </div>
+</header>
+
+<div class="titleblock">
+  <h1>디지털 성돌: <em>시민의 메시지</em>로 쌓아가는 한양도성</h1>
+  <p>상징적 복원 캠페인</p>
+</div>
+
+<div class="firstprompt" id="firstPrompt">
+  <div class="lead">성벽은 아직 어둡습니다</div>
+  <div class="sub">메시지를 남기면 성돌 하나에 불이 켜집니다</div>
+</div>
+
+<div class="scrollhint" id="scrollHint">
+  <svg viewBox="0 0 24 24" fill="none"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  드래그해서 성곽을 둘러보세요
+  <svg viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</div>
+
+<footer class="console">
+  <div class="console-inner">
+    <div class="timeline">
+      <span class="step">한양도성 원형</span>
+      <span class="sep"></span>
+      <span class="step">훼손과 단절</span>
+      <span class="sep"></span>
+      <span class="step current">디지털 성돌 캠페인</span>
+      <span class="sep"></span>
+      <span class="step">미래의 복원</span>
+    </div>
+    <form class="composer" id="composer">
+      <label for="msgInput">참여하기: 성돌에 메시지를 남기세요</label>
+      <input id="msgInput" type="text" maxlength="50" placeholder="여기에 당신의 응원 메시지를 입력하세요 (50자 이내)" autocomplete="off" />
+      <button type="submit" id="stackBtn">성돌 쌓기<span>(Stack Stone)</span></button>
+    </form>
+    <p class="console-hint">메시지를 남기면 성벽의 성돌 하나에 불이 켜집니다.</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+
+
+</body>
+</html>
