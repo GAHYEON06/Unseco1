@@ -253,15 +253,15 @@ composer.addEventListener('submit', async (e) => {
 function panTo(xPercent) {
   const frameW = centerFrame.getBoundingClientRect().width;
   const wrapW  = scrollwrap.getBoundingClientRect().width;
-  const lo = centerFrame.offsetLeft;
-  const hi = Math.max(lo, lo + frameW - wrapW);
-  const want = lo + (xPercent / 100) * frameW - wrapW / 2;
-  scrollwrap.scrollTo({ left: Math.min(hi, Math.max(lo, want)), behavior: 'smooth' });
+  const hi = Math.max(0, frameW - wrapW);
+  const want = (xPercent / 100) * frameW - wrapW / 2;
+  scrollwrap.scrollTo({ left: Math.min(hi, Math.max(0, want)), behavior: 'smooth' });
 }
 
 function setInitialScroll() {
   const frameW = centerFrame.getBoundingClientRect().width;
-  scrollwrap.scrollLeft = centerFrame.offsetLeft + frameW * 0.06;
+  const wrapW  = scrollwrap.getBoundingClientRect().width;
+  scrollwrap.scrollLeft = Math.max(0, (frameW - wrapW) * 0.34);
 }
 addEventListener('load', () => { setInitialScroll(); draw(); });
 setTimeout(setInitialScroll, 50);
