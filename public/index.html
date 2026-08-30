@@ -70,17 +70,19 @@
 
   .wallcanvas{
     display:flex;
-    align-items:stretch;
+    align-items:center;
     height:100dvh;
     width:max-content;
   }
 
+  /* 사진 한 장으로 화면을 꽉 채우되 비율은 그대로 유지합니다.
+     가로 스크롤 범위가 사진 폭을 넘지 않으므로 빈 화면이 나오지 않습니다. */
   .photoframe{
     position:relative;
-    height:100%;
-    aspect-ratio:1176/646;
     flex:0 0 auto;
     overflow:hidden;
+    width:max(100vw, calc(100dvh * 1176 / 646));
+    height:max(100dvh, calc(100vw * 646 / 1176));
   }
   .photoframe img{
     position:absolute; inset:0;
@@ -90,22 +92,6 @@
     user-select:none;
     -webkit-user-drag:none;
     pointer-events:none;
-  }
-  .photoframe.echo{
-    filter:brightness(0.5) saturate(0.68) blur(0.3px);
-  }
-  .photoframe.echo.left{transform:scaleX(-1);}
-  .photoframe.echo.right{transform:scaleX(-1);}
-  .photoframe.echo::after{
-    content:"";
-    position:absolute; inset:0;
-  }
-  /* both echoes are mirrored, so the fade is written per side in source space */
-  .photoframe.echo.left::after{
-    background:linear-gradient(90deg, rgba(5,7,13,0) 0%, rgba(5,7,13,0) 42%, rgba(5,7,13,0.85) 88%, var(--ink-deep) 100%);
-  }
-  .photoframe.echo.right::after{
-    background:linear-gradient(90deg, var(--ink-deep) 0%, rgba(5,7,13,0.85) 12%, rgba(5,7,13,0) 58%, rgba(5,7,13,0) 100%);
   }
   .photoframe.center::after{
     content:"";
@@ -395,11 +381,7 @@
 
 <div class="stage" id="stage">
   <div class="scrollwrap" id="scrollwrap">
-    <div class="wallcanvas" id="wallcanvas">
-      <div class="photoframe echo left">
-        <img src="/assets/wall.jpg" alt="" />
-      </div>
-      <div class="photoframe center" id="centerFrame">
+    <div class="wallcanvas" id="wallcanvas">      <div class="photoframe center" id="centerFrame">
         <img src="/assets/wall.jpg" alt="한양도성 낙산 구간 야경, 성곽과 남산서울타워, 도심 스카이라인" />
         <canvas class="glowcanvas" id="glowCanvas"></canvas>
         <div class="pin" id="pinRoad" style="left:61%; top:69%;">황학동 국도</div>
@@ -407,11 +389,7 @@
         <div class="pin" id="pinInwang" style="left:88%; top:28%;">인왕산</div>
         <div class="tiles" id="tiles"></div>
 
-      </div>
-      <div class="photoframe echo right">
-        <img src="/assets/wall.jpg" alt="" />
-      </div>
-    </div>
+      </div>    </div>
   </div>
 </div>
 
