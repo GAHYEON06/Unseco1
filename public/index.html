@@ -168,7 +168,7 @@
   .stonemark{
     position:absolute;
     transform:translate(-50%,-50%);
-    width:clamp(11px, 1.7%, 26px);
+    width:clamp(14px, 2.1%, 32px);
     aspect-ratio:1;
     padding:0;
     border:none;
@@ -181,10 +181,21 @@
         rgba(240,150,54,0) 100%);
     cursor:pointer;
     pointer-events:auto;
-    transition:transform 0.16s ease, filter 0.16s ease;
+    transition:transform 0.16s ease, filter 0.16s ease, opacity 0.35s ease;
     animation:mark-ember 4.6s ease-in-out infinite;
     animation-delay:var(--delay,0s);
   }
+  .stonemark::after{
+    content:"";
+    position:absolute; inset:-6px;
+    border-radius:34% / 42%;
+    border:1.5px solid rgba(246,200,118,0);
+    transition:border-color 0.16s ease;
+    pointer-events:none;
+  }
+  .stonemark:hover::after,
+  .stonemark:focus-visible::after{ border-color:rgba(246,200,118,0.85); }
+  .stonemark.pending{ animation:none; opacity:0; }
   .stonemark.accent{
     background:
       radial-gradient(circle at 42% 38%,
@@ -456,6 +467,17 @@
     font-size:11.5px;
     color:var(--mist-dim);
     text-align:center;
+  }
+
+  /* 입력한 메시지가 성벽으로 날아가는 빛 */
+  .projectile{
+    position:fixed; z-index:55;
+    width:14px; height:14px;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle, #ffffff 0%, var(--gold-soft) 42%, rgba(242,181,69,0) 72%);
+    box-shadow:0 0 18px 6px rgba(242,181,69,0.7), 0 0 44px 14px rgba(242,181,69,0.32);
+    pointer-events:none;
   }
 
   /* ---------- toast ---------- */

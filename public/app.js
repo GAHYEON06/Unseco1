@@ -133,8 +133,8 @@ function flashMark(entry) {
   entry.el.classList.add('pulse');
 }
 
-function placeStone(stone, { mine = false, instant = false } = {}) {
-  if (stone.x == null || stone.y == null || seenSlots.has(stone.slot)) return;
+function registerStone(stone, { mine = false } = {}) {
+  if (stone.x == null || stone.y == null || seenSlots.has(stone.slot)) return null;
   seenSlots.add(stone.slot);
 
   const entry = {
@@ -146,20 +146,81 @@ function placeStone(stone, { mine = false, instant = false } = {}) {
     mine,
   };
   messages.push(entry);
-  makeMark(entry, !instant);
+  updateBoardCount();
+  if (boardPanel.classList.contains('open')) renderBoard();
+  return entry;
+}
 
-  lightStone(stone.x, stone.y, mine ? 4.4 : 3.4, mine, instant);
+// 성돌 하나와 주변 잔불을 켭니다
+function igniteStone(entry, { mine = false, instant = false } = {}) {
+  lightStone(entry.x, entry.y, mine ? 4.4 : 3.4, mine, instant);
   const halo = mine ? 8 : 5;
   for (let i = 0; i < halo; i++) {
     const a = Math.random() * Math.PI * 2;
     const d = 2.2 + Math.random() * 4.0;
-    lightStone(stone.x + Math.cos(a) * d, stone.y + Math.sin(a) * d * 0.5,
+    lightStone(entry.x + Math.cos(a) * d, entry.y + Math.sin(a) * d * 0.5,
                1.8 + Math.random() * 1.4, false, instant);
   }
-
-  updateBoardCount();
-  if (boardPanel.classList.contains('open')) renderBoard();
   dismissPrompt();
+}
+
+function placeStone(stone, { mine = false, instant = false } = {}) {
+  const entry = registerStone(stone, { mine });
+  if (!entry) return;
+  makeMark(entry, !instant);
+  igniteStone(entry, { mine, instant });
+}
+
+// 내가 쓴 메시지 — 입력창에서 성벽의 그 자리로 빛이 날아가 꽂힙니다
+async function launchToWall(stone) {
+  const entry = registerStone(stone, { mine: true });
+  if (!entry) return;
+  const mark = makeMark(entry, false);
+  mark.classList.add('pending');
+  panTo(stone.x);
+
+  if (reduced) {
+    mark.classList.remove('pending');
+    igniteStone(entry, { mine: true });
+    flashMark(entry);
+    return;
+  }
+
+  await new Promise((r) => setTimeout(r, 420)); // 부드러운 스크롤이 멎을 시간
+
+  const box = mark.getBoundingClientRect();
+  const tx = box.left + box.width / 2;
+  const ty = box.top + box.height / 2;
+  const sx = innerWidth / 2;
+  const sy = innerHeight - 132;
+
+  const proj = document.createElement('div');
+  proj.className = 'projectile';
+  proj.style.left = sx + 'px';
+  proj.style.top  = sy + 'px';
+  document.body.appendChild(proj);
+
+  const mx = (sx + tx) / 2;
+  const my = Math.min(sy, ty) - Math.min(180, Math.max(70, Math.abs(sy - ty) * 0.4));
+  const anim = proj.animate(
+    [
+      { left: `${sx}px`, top: `${sy}px`, opacity: 0.2, transform: 'translate(-50%,-50%) scale(0.55)' },
+      { opacity: 1, offset: 0.12 },
+      { left: `${mx}px`, top: `${my}px`, offset: 0.5, transform: 'translate(-50%,-50%) scale(1)' },
+      { left: `${tx}px`, top: `${ty}px`, opacity: 1, transform: 'translate(-50%,-50%) scale(0.65)' },
+    ],
+    { duration: 650, easing: 'cubic-bezier(.35,0,.25,1)' }
+  );
+
+  await Promise.race([
+    anim.finished ? anim.finished.catch(() => {}) : Promise.resolve(),
+    new Promise((r) => setTimeout(r, 900)),
+  ]);
+
+  proj.remove();
+  mark.classList.remove('pending');
+  igniteStone(entry, { mine: true });
+  flashMark(entry);
 }
 
 function dismissPrompt() {
@@ -397,10 +458,9 @@ composer.addEventListener('submit', async (e) => {
     }
 
     input.value = '';
-    placeStone({ ...body.stone, created_at: new Date().toISOString() }, { mine: true });
     bumpStats();
-    showToast('성돌에 불이 켜졌습니다', 'ok');
-    panTo(body.stone.x);
+    showToast('메시지를 성벽으로 보냈습니다', 'ok');
+    launchToWall({ ...body.stone, created_at: new Date().toISOString() });
   } catch {
     showToast('연결이 불안정합니다. 잠시 후 다시 시도해주세요.');
   } finally {
@@ -427,6 +487,7 @@ setTimeout(setInitialScroll, 50);
 
 let down = false, startX = 0, startScroll = 0, dragged = false;
 scrollwrap.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('.stonemark')) return;   // 성돌 표식은 클릭이 우선
   down = true; dragged = false;
   startX = e.clientX; startScroll = scrollwrap.scrollLeft;
   scrollwrap.classList.add('grabbing');
