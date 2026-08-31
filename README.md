@@ -13,8 +13,8 @@
 
 ```
 public/
-  index.html          화면
-  app.js              불빛 렌더러 · API 호출 · 실시간 구독
+  index.html          화면 · 오버레이(소개 · 한양도성 이야기 · 실시간 게시판 · 성돌 메시지)
+  app.js              불빛 렌더러 · 성돌 표식 · 게시판 · API 호출 · 실시간 구독
   favicon.svg
   assets/
     wall.jpg          배경 사진
@@ -22,11 +22,12 @@ public/
     slots.json        성돌 좌표 (참고용)
     og.jpg            공유 카드 이미지
 api/
-  stones.js           GET 전체 조회 · POST 성돌 놓기
+  stones.js           GET 전체 조회 · POST 성돌 놓기 (메시지 최대 200자)
   config.js           브라우저에 공개 키 전달
 supabase/
-  schema.sql          테이블 · RLS · 함수
-  seed_slots.sql      성돌 605자리 좌표
+  schema.sql              테이블 · RLS · 함수
+  seed_slots.sql          성돌 605자리 좌표
+  alter_message_length.sql  이미 배포한 프로젝트에서 메시지 길이를 200자로 늘릴 때
 ```
 
 ### 불빛의 원리
@@ -101,6 +102,7 @@ vercel dev                # http://localhost:3000
 | 항목 | 처리 |
 |---|---|
 | 자리 중복 | `place_stone()` 이 빈 자리를 원자적으로 차지 — 동시 요청에도 한 자리에 한 명 |
+| 메시지 길이 | 1–200자. `api/stones.js` 의 `MAX_LEN`, `schema.sql` 의 `check` 제약, `place_stone()` 세 곳을 함께 맞춰야 합니다 |
 | 도배 방지 | 같은 IP 1분에 3회 (`api/stones.js` 의 `MAX_PER_IP`) |
 | 비속어 | `BLOCKLIST` 배열 — 운영하며 채워 넣으세요 |
 | 개인정보 | IP 원문은 저장하지 않고 salt 를 섞은 SHA-256 해시만 기록 |
@@ -128,6 +130,10 @@ delete from stones where id = 123;
 
 **속도 제한 조정**
 `api/stones.js` 상단의 `WINDOW_MS`, `MAX_PER_IP` 값을 바꾸고 다시 배포하세요.
+
+**메시지 길이를 이미 배포한 프로젝트에서 늘리기**
+`supabase/alter_message_length.sql` 을 SQL Editor 에 붙여넣고 Run 하면 50자 → 200자로 바뀝니다.
+(새로 배포하는 경우 `schema.sql` 에 이미 반영돼 있어 따로 실행할 필요가 없습니다.)
 
 ---
 

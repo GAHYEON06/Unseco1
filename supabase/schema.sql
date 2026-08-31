@@ -16,7 +16,7 @@ create table if not exists public.slots (
 create table if not exists public.stones (
   id         bigint generated always as identity primary key,
   slot       int not null unique references public.slots(idx),
-  message    text not null check (char_length(message) between 1 and 50),
+  message    text not null check (char_length(message) between 1 and 200),
   created_at timestamptz not null default now()
 );
 
@@ -57,7 +57,7 @@ declare
   result public.stones;
   clean  text := btrim(msg);
 begin
-  if char_length(clean) < 1 or char_length(clean) > 50 then
+  if char_length(clean) < 1 or char_length(clean) > 200 then
     raise exception 'MESSAGE_LENGTH' using errcode = 'P0001';
   end if;
 

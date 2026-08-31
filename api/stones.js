@@ -15,6 +15,7 @@ const supabase = createClient(
 
 const WINDOW_MS   = 60 * 1000; // 1분 동안
 const MAX_PER_IP  = 3;         // 같은 사람은 3번까지
+const MAX_LEN     = 200;       // 메시지 최대 길이 (schema 의 check 제약과 맞춰 주세요)
 
 // 노출하고 싶지 않은 낱말 — 운영하면서 채워 넣으세요
 const BLOCKLIST = ['씨발', '개새', '병신', 'ㅅㅂ', 'ㅂㅅ'];
@@ -58,7 +59,7 @@ export default async function handler(req, res) {
     }
 
     const message = String(req.body?.message ?? '').trim();
-    if (message.length < 1 || message.length > 50) {
+    if (message.length < 1 || message.length > MAX_LEN) {
       return res.status(400).json({ error: 'MESSAGE_LENGTH' });
     }
     const lowered = message.toLowerCase();

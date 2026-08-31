@@ -53,6 +53,11 @@
     border-radius:6px;
   }
 
+  .sr-only{
+    position:absolute; width:1px; height:1px;
+    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;
+  }
+
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
   }
@@ -159,44 +164,55 @@
     text-shadow:0 2px 12px rgba(0,0,0,0.85);
   }
 
-  /* message / stone tiles */
-  .tile{
+  /* ---------- lit stone marks (사진 속 실제 돌 크기에 맞춘 작은 표식) ---------- */
+  .stonemark{
     position:absolute;
-    transform:translate(-50%,-50%) rotate(var(--tilt,0deg));
-    padding:5px 10px;
-    border-radius:4px;
-    font-size:11.5px;
-    font-weight:600;
-    letter-spacing:-0.01em;
-    line-height:1.25;
-    white-space:nowrap;
-    color:#ffdf9e;
-    background:rgba(28,15,4,0.74);
-    border:1.4px solid rgba(246,186,86,0.95);
-    text-shadow:0 0 7px rgba(255,190,90,0.85);
-    box-shadow:
-      0 0 12px 2px rgba(242,170,60,0.55),
-      inset 0 0 10px rgba(255,190,90,0.30);
-    animation:ember 4.2s ease-in-out infinite;
+    transform:translate(-50%,-50%);
+    width:clamp(11px, 1.7%, 26px);
+    aspect-ratio:1;
+    padding:0;
+    border:none;
+    border-radius:34% / 42%;
+    background:
+      radial-gradient(circle at 42% 38%,
+        rgba(255,231,182,0.95) 0%,
+        rgba(244,181,84,0.55) 48%,
+        rgba(240,150,54,0.12) 74%,
+        rgba(240,150,54,0) 100%);
+    cursor:pointer;
+    pointer-events:auto;
+    transition:transform 0.16s ease, filter 0.16s ease;
+    animation:mark-ember 4.6s ease-in-out infinite;
     animation-delay:var(--delay,0s);
-    pointer-events:none;
-    backdrop-filter:blur(1px);
   }
-  .tile.accent{
-    color:#cdefff;
-    border-color:rgba(140,214,255,0.95);
-    text-shadow:0 0 7px rgba(140,214,255,0.85);
-    box-shadow:0 0 12px 2px rgba(90,180,255,0.55), inset 0 0 10px rgba(140,214,255,0.28);
+  .stonemark.accent{
+    background:
+      radial-gradient(circle at 42% 38%,
+        rgba(206,239,255,0.95) 0%,
+        rgba(140,200,246,0.5) 48%,
+        rgba(120,180,255,0.12) 74%,
+        rgba(120,180,255,0) 100%);
   }
-  .tile.new{animation:arrive 0.75s cubic-bezier(.2,.9,.25,1.2), ember 4.2s ease-in-out infinite 0.75s;}
-  @keyframes ember{
-    0%,100%{ box-shadow:0 0 12px 2px rgba(242,170,60,0.5), inset 0 0 10px rgba(255,190,90,0.28); }
-    50%{ box-shadow:0 0 20px 5px rgba(242,170,60,0.8), inset 0 0 14px rgba(255,205,120,0.45); }
+  .stonemark:hover,
+  .stonemark:focus-visible{
+    transform:translate(-50%,-50%) scale(1.45);
+    filter:brightness(1.25);
+    outline:none;
   }
-  @keyframes arrive{
-    0%{ transform:translate(-50%,-50%) rotate(var(--tilt,0deg)) scale(0.25); opacity:0; }
-    60%{ opacity:1; }
-    100%{ transform:translate(-50%,-50%) rotate(var(--tilt,0deg)) scale(1); opacity:1; }
+  .stonemark.new{animation:mark-pop 0.7s cubic-bezier(.2,.9,.25,1.2), mark-ember 4.6s ease-in-out infinite 0.7s;}
+  .stonemark.pulse{animation:mark-pulse 1.5s ease;}
+  @keyframes mark-ember{
+    0%,100%{opacity:0.78;}
+    50%{opacity:1;}
+  }
+  @keyframes mark-pop{
+    0%{transform:translate(-50%,-50%) scale(0.2); opacity:0;}
+    60%{opacity:1;}
+    100%{transform:translate(-50%,-50%) scale(1); opacity:1;}
+  }
+  @keyframes mark-pulse{
+    0%,100%{transform:translate(-50%,-50%) scale(1); filter:brightness(1);}
+    30%{transform:translate(-50%,-50%) scale(2.1); filter:brightness(1.6);}
   }
 
   .pin{
@@ -252,7 +268,7 @@
     text-transform:uppercase;
   }
 
-  .topbar-right{display:flex; align-items:center; gap:clamp(12px,2.4vw,24px);}
+  .topbar-right{display:flex; align-items:center; gap:clamp(10px,2.2vw,20px);}
   .stats{text-align:right; line-height:1.3;}
   .stats .main{
     font-size:14px; font-weight:600; color:var(--paper);
@@ -268,7 +284,7 @@
   .flash{animation:flash 0.6s ease;}
   @keyframes flash{ 0%{opacity:0.35; transform:translateY(-2px);} 100%{opacity:1; transform:none;} }
 
-  .aboutbtn{
+  .ghostbtn{
     display:inline-flex; align-items:center; gap:7px;
     background:var(--glass);
     border:1px solid var(--hairline);
@@ -280,9 +296,11 @@
     backdrop-filter:blur(6px);
     transition:color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
     flex:0 0 auto;
+    white-space:nowrap;
   }
-  .aboutbtn:hover{color:var(--paper); border-color:var(--glass-border);}
-  .aboutbtn svg{width:15px; height:15px;}
+  .ghostbtn:hover{color:var(--paper); border-color:var(--glass-border);}
+  .ghostbtn svg{width:15px; height:15px;}
+  .ghostbtn b{color:var(--gold-soft); font-weight:700; font-variant-numeric:tabular-nums;}
 
   /* ---------- title block ---------- */
   .titleblock{
@@ -310,7 +328,7 @@
 
   /* ---------- scroll hint ---------- */
   .scrollhint{
-    position:fixed; left:50%; bottom:214px;
+    position:fixed; left:50%; bottom:196px;
     transform:translateX(-50%);
     display:flex; align-items:center; gap:10px;
     font-size:12.5px; color:var(--mist);
@@ -344,68 +362,50 @@
   }
   .console-inner{ max-width:940px; margin:0 auto; }
 
-  /* progress toward the wall's capacity */
-  .progress{
-    display:flex; align-items:center; gap:14px;
-    margin-bottom:14px;
-  }
-  .progress .track{
-    position:relative;
-    flex:1;
-    height:5px;
-    border-radius:999px;
-    background:rgba(246,239,224,0.1);
-    overflow:hidden;
-  }
-  .progress .fill{
-    position:absolute; left:0; top:0; bottom:0;
-    width:0%;
-    border-radius:999px;
-    background:linear-gradient(90deg, var(--gold-deep), var(--gold) 60%, var(--gold-soft));
-    box-shadow:0 0 12px 1px rgba(242,181,69,0.6);
-    transition:width 0.9s cubic-bezier(.2,.7,.3,1);
-  }
-  .progress .label{
-    font-size:12px; color:var(--mist);
-    font-variant-numeric:tabular-nums;
-    white-space:nowrap;
-    flex:0 0 auto;
-  }
-  .progress .label b{color:var(--gold-soft); font-weight:600;}
-
-  .timeline{
+  /* 한양도성 이야기 · 게시판 진입 칩 */
+  .chips{
     display:flex; align-items:center; justify-content:center;
-    gap:clamp(6px,2vw,14px);
+    gap:8px;
     margin-bottom:14px;
     flex-wrap:wrap;
   }
-  .timeline .step{
-    display:flex; align-items:center; gap:7px;
-    font-size:12px; color:var(--mist-dim);
+  .chips .chips-label{
+    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mist-dim);
+    margin-right:4px;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--glass);
+    border:1px solid var(--hairline);
+    color:var(--mist);
+    font-size:12.5px; font-weight:500;
+    padding:6px 13px;
+    border-radius:999px;
+    cursor:pointer;
+    backdrop-filter:blur(4px);
+    transition:color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
     white-space:nowrap;
   }
-  .timeline .step::before{
-    content:"";
-    width:6px; height:6px; border-radius:50%;
-    background:currentColor;
-    flex:0 0 auto;
+  .chip::before{
+    content:""; width:5px; height:5px; border-radius:50%;
+    background:currentColor; flex:0 0 auto; opacity:0.7;
   }
-  .timeline .step.current{
-    color:var(--ink-deep);
-    background:var(--gold);
-    border-radius:999px;
-    padding:5px 13px;
-    font-weight:700;
+  .chip:hover{color:var(--paper); border-color:var(--glass-border);}
+  .chip.board{
+    color:var(--gold-soft);
+    border-color:rgba(242,181,69,0.35);
+    background:rgba(242,181,69,0.08);
   }
-  .timeline .step.current::before{background:var(--ink-deep);}
-  .timeline .sep{width:18px; height:1px; background:var(--hairline);}
+  .chip.board::before{background:var(--gold);}
+  .chip.board b{font-weight:700; font-variant-numeric:tabular-nums;}
 
   .composer{
-    display:flex; align-items:center; gap:10px;
+    display:flex; align-items:flex-end; gap:10px;
     background:var(--glass-strong);
     border:1px solid var(--glass-border);
     border-radius:14px;
-    padding:6px 6px 6px 18px;
+    padding:8px 8px 8px 18px;
     box-shadow:var(--shadow-soft);
     transition:border-color 0.2s ease, box-shadow 0.2s ease;
   }
@@ -413,20 +413,25 @@
     border-color:rgba(242,181,69,0.6);
     box-shadow:var(--shadow-soft), 0 0 0 3px rgba(242,181,69,0.14);
   }
-  .composer .field{flex:1; display:flex; align-items:center; gap:10px; min-width:0;}
-  .composer input{
+  .composer .field{flex:1; display:flex; align-items:flex-end; gap:10px; min-width:0;}
+  .composer textarea{
     flex:1; min-width:0;
     background:transparent; border:none; outline:none;
     color:var(--paper);
     font-family:inherit;
     font-size:14.5px;
-    padding:11px 0;
+    line-height:1.5;
+    padding:6px 0;
+    resize:none;
+    max-height:132px;
+    overflow-y:auto;
   }
-  .composer input::placeholder{color:var(--mist-dim);}
+  .composer textarea::placeholder{color:var(--mist-dim);}
   .composer .count{
     font-size:11.5px; color:var(--mist-dim);
     font-variant-numeric:tabular-nums;
     flex:0 0 auto;
+    padding-bottom:7px;
     transition:color 0.2s ease;
   }
   .composer .count.near{color:var(--gold-soft);}
@@ -455,14 +460,14 @@
 
   /* ---------- toast ---------- */
   .toast{
-    position:fixed; left:50%; bottom:158px;
+    position:fixed; left:50%; bottom:150px;
     transform:translateX(-50%) translateY(8px);
     background:var(--glass-strong);
     border:1px solid var(--glass-border);
     color:var(--gold-soft);
     font-size:12.5px; font-weight:600;
     padding:9px 18px; border-radius:999px;
-    z-index:25;
+    z-index:60;
     opacity:0;
     display:flex; align-items:center; gap:8px;
     box-shadow:var(--shadow-soft);
@@ -478,21 +483,23 @@
   .toast.error{color:var(--danger); border-color:rgba(242,133,122,0.4);}
   .toast.error::before{background:var(--danger);}
 
-  /* ---------- about panel ---------- */
-  .about{
+  /* ---------- overlay sheets (소개 · 이야기 · 게시판 · 성돌 메시지) ---------- */
+  .sheet{
     position:fixed; inset:0;
-    z-index:40;
+    z-index:50;
     display:flex; align-items:center; justify-content:center;
     padding:24px;
-    background:rgba(3,5,10,0.78);
+    background:rgba(3,5,10,0.8);
     backdrop-filter:blur(5px);
     opacity:0; visibility:hidden;
     transition:opacity 0.3s ease, visibility 0.3s ease;
   }
-  .about.open{opacity:1; visibility:visible;}
-  .about-card{
+  .sheet.open{opacity:1; visibility:visible;}
+  .sheet-card{
     position:relative;
-    width:min(440px,100%);
+    width:min(460px,100%);
+    max-height:min(78dvh,680px);
+    display:flex; flex-direction:column;
     background:linear-gradient(180deg, #0c1424, #070b13);
     border:1px solid var(--glass-border);
     border-radius:18px;
@@ -500,38 +507,34 @@
     box-shadow:var(--shadow-soft);
     transform:translateY(14px) scale(0.98);
     transition:transform 0.3s cubic-bezier(.2,.9,.3,1.1);
+    overflow:hidden;
   }
-  .about.open .about-card{transform:none;}
-  .about-card .eyebrow{
+  .sheet.open .sheet-card{transform:none;}
+  .sheet-card.wide{width:min(560px,100%);}
+  .sheet-card .eyebrow{
     font-size:11px; letter-spacing:0.16em; text-transform:uppercase;
     color:var(--gold);
+    flex:0 0 auto;
   }
-  .about-card h2{
+  .sheet-card h2{
     margin-top:8px;
     font-family:'Gowun Batang','Noto Serif KR',serif;
     font-size:22px; color:var(--paper);
-  }
-  .about-card p{
-    margin:14px 0 0;
-    font-size:13.5px; line-height:1.7; color:var(--mist);
-  }
-  .about-card .steps{
-    margin:18px 0 0; padding:0; list-style:none;
-    display:flex; flex-direction:column; gap:10px;
-  }
-  .about-card .steps li{
-    display:flex; align-items:flex-start; gap:11px;
-    font-size:13px; color:var(--paper);
-  }
-  .about-card .steps li b{
     flex:0 0 auto;
-    width:20px; height:20px; border-radius:50%;
-    display:grid; place-items:center;
-    background:rgba(242,181,69,0.16);
-    color:var(--gold-soft);
-    font-size:11px; font-weight:700;
   }
-  .about-card .close{
+  .sheet-card h2 .muted{color:var(--mist-dim); font-size:15px; font-weight:400;}
+  .sheet-scroll{
+    margin-top:16px;
+    overflow-y:auto;
+    padding-right:6px;
+    flex:1 1 auto;
+  }
+  .sheet-card p{
+    margin:0 0 14px;
+    font-size:13.5px; line-height:1.75; color:var(--mist);
+  }
+  .sheet-card p strong{color:var(--gold-soft); font-weight:600;}
+  .sheet-card .close{
     position:absolute; top:16px; right:16px;
     width:32px; height:32px;
     display:grid; place-items:center;
@@ -539,29 +542,104 @@
     border-radius:50%;
     color:var(--mist); cursor:pointer;
     transition:color 0.2s ease, border-color 0.2s ease;
+    z-index:2;
   }
-  .about-card .close:hover{color:var(--paper); border-color:var(--glass-border);}
+  .sheet-card .close:hover{color:var(--paper); border-color:var(--glass-border);}
+
+  /* 참여 방법 스텝 */
+  .steps{
+    margin:6px 0 0; padding:0; list-style:none;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .steps li{
+    display:flex; align-items:flex-start; gap:11px;
+    font-size:13px; color:var(--paper);
+  }
+  .steps li b{
+    flex:0 0 auto;
+    width:20px; height:20px; border-radius:50%;
+    display:grid; place-items:center;
+    background:rgba(242,181,69,0.16);
+    color:var(--gold-soft);
+    font-size:11px; font-weight:700;
+  }
+
+  /* 한양도성 이야기 섹션 */
+  .story-sec{ scroll-margin-top:8px; }
+  .story-sec + .story-sec{
+    margin-top:20px; padding-top:20px;
+    border-top:1px solid var(--hairline);
+  }
+  .story-sec h3{
+    font-family:'Gowun Batang','Noto Serif KR',serif;
+    font-size:16px; color:var(--gold-soft);
+    margin-bottom:8px;
+  }
+  .story-sec.flash-target{animation:secflash 1.4s ease;}
+  @keyframes secflash{0%,100%{background:transparent;}30%{background:rgba(242,181,69,0.08);}}
+
+  /* 실시간 게시판 */
+  .board-list{
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .board-item{
+    text-align:left;
+    display:flex; flex-direction:column; gap:5px;
+    background:rgba(246,239,224,0.04);
+    border:1px solid var(--hairline);
+    border-radius:12px;
+    padding:12px 14px;
+    color:var(--paper);
+    cursor:pointer;
+    transition:border-color 0.18s ease, background 0.18s ease;
+  }
+  .board-item:hover{border-color:var(--glass-border); background:rgba(246,239,224,0.07);}
+  .board-item.mine{border-color:rgba(242,181,69,0.4); background:rgba(242,181,69,0.07);}
+  .board-msg{
+    font-size:13.5px; line-height:1.6;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .board-meta{
+    font-size:11px; color:var(--mist-dim);
+    font-variant-numeric:tabular-nums;
+  }
+  .board-empty{
+    text-align:center; color:var(--mist-dim); font-size:13px;
+    padding:30px 0;
+  }
+
+  /* 성돌 메시지 상세 */
+  .stone-msg{
+    font-family:'Gowun Batang','Noto Serif KR',serif;
+    font-size:18px; line-height:1.75; color:var(--paper);
+    white-space:pre-wrap; word-break:break-word;
+    margin:4px 0 0;
+  }
+  .stone-meta{
+    margin-top:16px;
+    font-size:12px; color:var(--mist-dim);
+    font-variant-numeric:tabular-nums;
+  }
 
   /* ---------- responsive ---------- */
   @media (max-width:720px){
     .brand .wordmark span{display:none;}
     .titleblock{max-width:82vw; top:66px;}
     .stats .today{display:none;}
-    .aboutbtn span{display:none;}
-    .aboutbtn{padding:8px;}
-    .scrollhint{bottom:202px; font-size:11px; padding:6px 12px; gap:7px; white-space:nowrap;}
+    .ghostbtn .label{display:none;}
+    #aboutBtn{padding:8px;}
+    .scrollhint{bottom:188px; font-size:11px; padding:6px 12px; gap:7px; white-space:nowrap;}
     .firstprompt{top:38%;}
     .console{padding:12px 12px 16px;}
     .console-hint{display:none;}
-    .progress{margin-bottom:12px;}
-    .progress .label{font-size:11px;}
-    .timeline{gap:6px; margin-bottom:12px;}
-    .timeline .step{font-size:11px;}
-    .timeline .step:not(.current) span{display:none;}
-    .timeline .sep{width:8px;}
-    .composer{padding:5px 5px 5px 14px;}
+    .chips{gap:6px; margin-bottom:12px;}
+    .chips .chips-label{display:none;}
+    .chip{font-size:11.5px; padding:6px 11px;}
+    .composer{padding:7px 7px 7px 14px;}
     .composer button span{display:none;}
-    .toast{bottom:150px;}
+    .toast{bottom:142px;}
+    .sheet{padding:16px;}
+    .sheet-card{padding:26px 20px 22px; max-height:84dvh;}
   }
 </style>
 
@@ -607,9 +685,13 @@
       <div class="main" id="totalCount">밝혀진 성돌 <b>0</b></div>
       <div class="today" id="todayCount">오늘 <b>+0</b></div>
     </div>
-    <button class="aboutbtn" id="aboutBtn" type="button" aria-haspopup="dialog" aria-expanded="false">
+    <button class="ghostbtn" id="boardBtnTop" type="button" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span class="label">실시간 게시판</span>
+    </button>
+    <button class="ghostbtn" id="aboutBtn" type="button" aria-haspopup="dialog" aria-expanded="false">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 11v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7.5" r="1.2" fill="currentColor"/></svg>
-      <span>소개</span>
+      <span class="label">소개</span>
     </button>
   </div>
 </header>
@@ -626,56 +708,120 @@
 
 <div class="scrollhint" id="scrollHint">
   <svg viewBox="0 0 24 24" fill="none"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  드래그해서 성곽을 둘러보세요
+  드래그해서 성곽을 둘러보세요 · 켜진 성돌을 누르면 메시지가 보입니다
   <svg viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </div>
 
 <footer class="console">
   <div class="console-inner">
-    <div class="progress" aria-hidden="true">
-      <div class="track"><div class="fill" id="progressFill"></div></div>
-      <div class="label" id="progressLabel"><b>0</b> / 605 성돌</div>
-    </div>
-    <div class="timeline">
-      <span class="step"><span>한양도성 원형</span></span>
-      <span class="sep"></span>
-      <span class="step"><span>훼손과 단절</span></span>
-      <span class="sep"></span>
-      <span class="step current"><span>디지털 성돌 캠페인</span></span>
-      <span class="sep"></span>
-      <span class="step"><span>미래의 복원</span></span>
+    <div class="chips">
+      <span class="chips-label">한양도성 이야기</span>
+      <button class="chip" type="button" data-story="origin">원형</button>
+      <button class="chip" type="button" data-story="loss">훼손과 단절</button>
+      <button class="chip" type="button" data-story="future">미래의 복원</button>
+      <button class="chip board" type="button" id="boardBtn">실시간 게시판 <b id="boardCount">0</b></button>
     </div>
     <form class="composer" id="composer">
-      <label class="sr-only" for="msgInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">참여하기: 성돌에 메시지를 남기세요</label>
+      <label class="sr-only" for="msgInput">참여하기: 성돌에 메시지를 남기세요</label>
       <div class="field">
-        <input id="msgInput" type="text" maxlength="50" placeholder="당신의 응원 메시지를 남겨주세요 (50자 이내)" autocomplete="off" />
-        <span class="count" id="charCount" aria-live="polite">0 / 50</span>
+        <textarea id="msgInput" rows="1" maxlength="200" placeholder="당신의 응원 메시지를 남겨주세요 (200자 이내)" autocomplete="off"></textarea>
+        <span class="count" id="charCount" aria-live="polite">0 / 200</span>
       </div>
       <button type="submit" id="stackBtn" disabled>성돌 쌓기<span>Stack Stone</span></button>
     </form>
-    <p class="console-hint">메시지를 남기면 성벽의 성돌 하나에 불이 켜지고, 모든 접속자에게 실시간으로 공유됩니다.</p>
+    <p class="console-hint">메시지를 남기면 성벽의 성돌 하나에 불이 켜지고, 모든 접속자에게 실시간으로 공유됩니다. · 줄바꿈은 Shift+Enter</p>
   </div>
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<div class="about" id="aboutPanel" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
-  <div class="about-card">
-    <button class="close" id="aboutClose" type="button" aria-label="닫기">
+<!-- 소개: 캠페인 -->
+<div class="sheet" id="aboutPanel" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+  <div class="sheet-card">
+    <button class="close" data-close type="button" aria-label="닫기">
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     </button>
     <span class="eyebrow">디지털 성돌</span>
     <h2 id="aboutTitle">시민의 메시지로 쌓아가는 한양도성</h2>
-    <p>
-      어두운 한양도성 성벽에 메시지를 남기면, 사진 속 <strong style="color:var(--gold-soft)">실제 성돌 하나</strong>에 불이 켜집니다.
-      켜진 성돌은 모든 접속자에게 실시간으로 공유되고, 사람이 모일수록 성벽이 밝아집니다.
-      사진은 낙산 구간의 야경이며, 605개의 성돌 자리가 채워지길 기다리고 있습니다.
-    </p>
-    <ol class="steps">
-      <li><b>1</b>아래 입력창에 응원 메시지를 적습니다</li>
-      <li><b>2</b>‘성돌 쌓기’를 누르면 빈 성돌 하나가 내 자리가 됩니다</li>
-      <li><b>3</b>그 자리에 불이 켜지고 성벽이 한 칸 더 밝아집니다</li>
-    </ol>
+    <div class="sheet-scroll">
+      <p>
+        어두운 한양도성 성벽에 메시지를 남기면, 사진 속 <strong>실제 성돌 하나</strong>에 불이 켜집니다.
+        켜진 성돌은 모든 접속자에게 실시간으로 공유되고, 사람이 모일수록 성벽이 밝아집니다.
+        사진은 낙산 구간의 야경입니다.
+      </p>
+      <ol class="steps">
+        <li><b>1</b>아래 입력창에 응원 메시지를 적습니다 (200자까지)</li>
+        <li><b>2</b>‘성돌 쌓기’를 누르면 빈 성돌 하나가 내 자리가 됩니다</li>
+        <li><b>3</b>그 자리에 불이 켜지고, 성돌을 누르면 메시지를 다시 볼 수 있습니다</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- 한양도성 이야기 -->
+<div class="sheet" id="storyPanel" role="dialog" aria-modal="true" aria-labelledby="storyTitle">
+  <div class="sheet-card wide">
+    <button class="close" data-close type="button" aria-label="닫기">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="eyebrow">한양도성 이야기</span>
+    <h2 id="storyTitle">서울을 두른 성벽, 그 600년</h2>
+    <div class="sheet-scroll">
+      <section class="story-sec" id="story-origin">
+        <h3>한양도성의 원형</h3>
+        <p>
+          한양도성은 1396년(태조 5년) 조선의 도읍을 두르기 위해 쌓은 성곽입니다.
+          북악산·낙산·남산·인왕산의 능선을 따라 약 <strong>18.6km</strong>가 이어졌고,
+          흥인지문·돈의문·숭례문·숙정문의 사대문과 네 개의 소문이 성 안팎을 이었습니다.
+          태조 때의 자연석, 세종 때의 다듬은 돌, 숙종 이후의 규격화된 돌이 구간마다 함께 남아
+          쌓은 시기를 성돌만 보고도 읽을 수 있습니다.
+        </p>
+      </section>
+      <section class="story-sec" id="story-loss">
+        <h3>훼손과 단절</h3>
+        <p>
+          일제강점기 도시 개조와 전차 노선 부설로 돈의문과 서소문, 그리고 평지 성벽 상당 구간이 헐렸습니다.
+          광복 이후에도 도로와 주택이 들어서면서 낮은 지대의 성벽은 대부분 사라지거나 건물 아래 묻혔고,
+          지금은 전체의 약 <strong>70%</strong>만 지상에 남아 능선 구간을 중심으로 이어져 있습니다.
+        </p>
+      </section>
+      <section class="story-sec" id="story-future">
+        <h3>미래의 복원</h3>
+        <p>
+          끊어진 구간을 잇는 발굴과 정비가 이어지고 있으며, 한양도성은 유네스코 세계유산 등재를 준비하고 있습니다.
+          이 캠페인은 물리적 복원에 앞서 <strong>시민의 기억으로 성벽을 다시 잇는</strong> 상징 프로젝트입니다.
+          한 사람의 메시지가 성돌 하나의 불빛이 되어, 어두운 성벽을 함께 밝혀 갑니다.
+        </p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- 실시간 게시판 -->
+<div class="sheet" id="boardPanel" role="dialog" aria-modal="true" aria-labelledby="boardTitle">
+  <div class="sheet-card wide">
+    <button class="close" data-close type="button" aria-label="닫기">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="eyebrow">실시간 게시판</span>
+    <h2 id="boardTitle">시민들이 남긴 메시지 <span class="muted" id="boardTotal"></span></h2>
+    <div class="sheet-scroll">
+      <div class="board-list" id="boardList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 성돌 메시지 상세 -->
+<div class="sheet" id="stonePanel" role="dialog" aria-modal="true" aria-labelledby="stoneTitle">
+  <div class="sheet-card">
+    <button class="close" data-close type="button" aria-label="닫기">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="eyebrow" id="stoneTitle">성돌에 새겨진 메시지</span>
+    <div class="sheet-scroll">
+      <p class="stone-msg" id="stoneMsg"></p>
+      <div class="stone-meta" id="stoneMeta"></div>
+    </div>
   </div>
 </div>
 

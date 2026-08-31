@@ -2,10 +2,12 @@
 //  디지털 성돌 — 프런트엔드
 //  · 성벽은 처음에 어둡습니다.
 //  · 메시지가 저장되면 그 자리의 실제 성돌 하나에 불이 켜집니다.
+//  · 켜진 성돌(작은 표식)을 누르면 남긴 메시지를 다시 볼 수 있습니다.
 //  · 다른 사람이 남긴 성돌도 Realtime 으로 즉시 켜집니다.
 // =====================================================================
 // supabase-js 는 실시간 갱신에만 쓰입니다. 불러오지 못해도 앱은 정상 동작합니다.
 const GLOW_SRC = '/assets/glow.png';
+const MAX_LEN  = 200;   // 응원 메시지 최대 길이
 
 const tilesEl     = document.getElementById('tiles');
 const scrollwrap  = document.getElementById('scrollwrap');
@@ -19,16 +21,12 @@ const composer    = document.getElementById('composer');
 const input       = document.getElementById('msgInput');
 const stackBtn    = document.getElementById('stackBtn');
 const charCount   = document.getElementById('charCount');
-const progressFill  = document.getElementById('progressFill');
-const progressLabel = document.getElementById('progressLabel');
-const wallLoading   = document.getElementById('wallLoading');
-const aboutBtn    = document.getElementById('aboutBtn');
-const aboutPanel  = document.getElementById('aboutPanel');
-const aboutClose  = document.getElementById('aboutClose');
+const wallLoading  = document.getElementById('wallLoading');
+const boardCountEl = document.getElementById('boardCount');
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const taken = [];   // 화면에 놓인 메시지 성돌
-const lit   = [];   // 불이 켜진 돌
+const messages  = [];   // 남겨진 메시지 { slot, message, x, y, created_at, mine, el }
+const lit       = [];   // 불이 켜진 돌
 const seenSlots = new Set();
 
 // ───────────────────────── 불빛 렌더러 ─────────────────────────
@@ -101,41 +99,56 @@ function startLoop() { if (!raf) raf = requestAnimationFrame(frame); }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) startLoop(); });
 addEventListener('resize', () => { draw(); startLoop(); });
 
-// ───────────────────────── 메시지 성돌 ─────────────────────────
-function makeTile(x, y, text, isNew) {
-  const el = document.createElement('div');
-  el.className = 'tile' + (isNew ? ' new' : '');
-  el.style.left = x + '%';
-  el.style.top  = y + '%';
-  el.style.setProperty('--delay', (Math.random() * 4.2).toFixed(2) + 's');
-  el.style.setProperty('--tilt', (Math.random() * 3 - 1.5).toFixed(2) + 'deg');
-  el.textContent = text;
+// ───────────────────────── 시간 표기 ─────────────────────────
+function timeAgo(iso) {
+  if (!iso) return '';
+  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60)     return '방금 전';
+  if (s < 3600)   return Math.floor(s / 60) + '분 전';
+  if (s < 86400)  return Math.floor(s / 3600) + '시간 전';
+  if (s < 604800) return Math.floor(s / 86400) + '일 전';
+  return new Date(iso).toLocaleDateString('ko-KR');
+}
+
+// ───────────────────────── 성돌 표식 ─────────────────────────
+// 사진 속 실제 돌 크기에 맞춘 작은 표식을 놓습니다. 누르면 메시지를 봅니다.
+function makeMark(entry, isNew) {
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'stonemark' + (isNew ? ' new' : '');
+  el.style.left = entry.x + '%';
+  el.style.top  = entry.y + '%';
+  el.style.setProperty('--delay', (Math.random() * 4.6).toFixed(2) + 's');
+  el.setAttribute('aria-label', '성돌 메시지 보기');
+  el.addEventListener('click', (e) => { e.stopPropagation(); openStone(entry); });
   tilesEl.appendChild(el);
-  taken.push({ x, y, el });
+  entry.el = el;
   return el;
 }
 
-// 이미 놓인 성돌과 겹치면 글자를 숨기고 불빛만 남깁니다
-function collides(x, y, text) {
-  const rect = centerFrame.getBoundingClientRect();
-  const fw = rect.width || 1, fh = rect.height || 1;
-  const estW = (text.length * 11.6 + 22) / fw * 100;
-  const estH = 28 / fh * 100;
-  return taken.some((t) => {
-    const tw = (t.el.offsetWidth || 90) / fw * 100;
-    return Math.abs(x - t.x) < (estW + tw) / 2 + 1.4 && Math.abs(y - t.y) < estH + 1.4;
-  });
+function flashMark(entry) {
+  if (!entry?.el) return;
+  entry.el.classList.remove('pulse');
+  void entry.el.offsetWidth;
+  entry.el.classList.add('pulse');
 }
 
 function placeStone(stone, { mine = false, instant = false } = {}) {
   if (stone.x == null || stone.y == null || seenSlots.has(stone.slot)) return;
   seenSlots.add(stone.slot);
 
-  if (!collides(stone.x, stone.y, stone.message)) {
-    makeTile(stone.x, stone.y, stone.message, !instant);
-  }
-  lightStone(stone.x, stone.y, mine ? 4.4 : 3.4, mine, instant);
+  const entry = {
+    slot: stone.slot,
+    message: stone.message,
+    x: stone.x,
+    y: stone.y,
+    created_at: stone.created_at || new Date().toISOString(),
+    mine,
+  };
+  messages.push(entry);
+  makeMark(entry, !instant);
 
+  lightStone(stone.x, stone.y, mine ? 4.4 : 3.4, mine, instant);
   const halo = mine ? 8 : 5;
   for (let i = 0; i < halo; i++) {
     const a = Math.random() * Math.PI * 2;
@@ -143,6 +156,9 @@ function placeStone(stone, { mine = false, instant = false } = {}) {
     lightStone(stone.x + Math.cos(a) * d, stone.y + Math.sin(a) * d * 0.5,
                1.8 + Math.random() * 1.4, false, instant);
   }
+
+  updateBoardCount();
+  if (boardPanel.classList.contains('open')) renderBoard();
   dismissPrompt();
 }
 
@@ -154,16 +170,13 @@ function dismissPrompt() {
 }
 
 // ───────────────────────── 카운터 ─────────────────────────
-let total = 0, today = 0, capacity = 605;
+let total = 0, today = 0;
 function renderStats() {
   document.querySelector('#totalCount b').textContent = total.toLocaleString('ko-KR');
   document.querySelector('#todayCount b').textContent = '+' + today.toLocaleString('ko-KR');
-  if (progressFill) {
-    const pct = capacity ? Math.min(100, (total / capacity) * 100) : 0;
-    progressFill.style.width = pct.toFixed(1) + '%';
-    progressLabel.innerHTML =
-      '<b>' + total.toLocaleString('ko-KR') + '</b> / ' + capacity.toLocaleString('ko-KR') + ' 성돌';
-  }
+}
+function updateBoardCount() {
+  if (boardCountEl) boardCountEl.textContent = messages.length.toLocaleString('ko-KR');
 }
 function flashStat(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 
@@ -184,12 +197,116 @@ function showToast(msg, type = 'error') {
 }
 
 const ERRORS = {
-  MESSAGE_LENGTH:    '메시지는 1자 이상 50자 이내로 적어주세요.',
+  MESSAGE_LENGTH:    `메시지는 1자 이상 ${MAX_LEN}자 이내로 적어주세요.`,
   BLOCKED_WORD:      '사용할 수 없는 표현이 있어요. 다시 적어주세요.',
   TOO_MANY_REQUESTS: '잠시 후 다시 시도해주세요. (1분에 3번까지)',
   WALL_FULL:         '성벽이 가득 찼습니다. 곧 새 구간이 열립니다.',
   SERVER_ERROR:      '성돌을 쌓지 못했습니다. 잠시 후 다시 시도해주세요.',
 };
+
+// ───────────────────────── 오버레이 시트 ─────────────────────────
+const aboutPanel = document.getElementById('aboutPanel');
+const storyPanel = document.getElementById('storyPanel');
+const boardPanel = document.getElementById('boardPanel');
+const stonePanel = document.getElementById('stonePanel');
+const sheets = [aboutPanel, storyPanel, boardPanel, stonePanel];
+let lastFocus = null;
+
+function openSheet(el) {
+  if (el && !lastFocus) lastFocus = document.activeElement;
+  sheets.forEach((s) => s.classList.toggle('open', s === el));
+  if (el) {
+    const c = el.querySelector('.close');
+    if (c) setTimeout(() => c.focus(), 30);
+  } else if (lastFocus) {
+    lastFocus.focus?.();
+    lastFocus = null;
+  }
+}
+function closeSheets() { openSheet(null); }
+
+sheets.forEach((s) => {
+  s.addEventListener('click', (e) => {
+    if (e.target === s || e.target.closest('[data-close]')) closeSheets();
+  });
+});
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && sheets.some((s) => s.classList.contains('open'))) closeSheets();
+});
+
+// 소개
+document.getElementById('aboutBtn').addEventListener('click', () => openSheet(aboutPanel));
+
+// 한양도성 이야기 — 칩을 누르면 해당 섹션으로
+document.querySelectorAll('.chip[data-story]').forEach((chip) => {
+  chip.addEventListener('click', () => {
+    openSheet(storyPanel);
+    const sec = document.getElementById('story-' + chip.dataset.story);
+    if (sec) {
+      setTimeout(() => {
+        sec.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        sec.classList.remove('flash-target');
+        void sec.offsetWidth;
+        sec.classList.add('flash-target');
+      }, 60);
+    }
+  });
+});
+
+// 실시간 게시판
+function renderBoard() {
+  const totalEl = document.getElementById('boardTotal');
+  if (totalEl) totalEl.textContent = messages.length ? `(${messages.length.toLocaleString('ko-KR')})` : '';
+
+  const list = document.getElementById('boardList');
+  if (!messages.length) {
+    list.replaceChildren(
+      Object.assign(document.createElement('p'), {
+        className: 'board-empty',
+        textContent: '아직 남겨진 메시지가 없습니다. 첫 성돌을 밝혀 주세요.',
+      })
+    );
+    return;
+  }
+
+  const items = [...messages].sort(
+    (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+  );
+  list.replaceChildren(
+    ...items.map((m) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'board-item' + (m.mine ? ' mine' : '');
+
+      const msg = document.createElement('span');
+      msg.className = 'board-msg';
+      msg.textContent = m.message;
+
+      const meta = document.createElement('span');
+      meta.className = 'board-meta';
+      meta.textContent = timeAgo(m.created_at) + (m.mine ? ' · 내 성돌' : '');
+
+      b.append(msg, meta);
+      b.addEventListener('click', () => {
+        closeSheets();
+        panTo(m.x);
+        flashMark(m);
+      });
+      return b;
+    })
+  );
+}
+function openBoard() { renderBoard(); openSheet(boardPanel); }
+document.getElementById('boardBtn').addEventListener('click', openBoard);
+document.getElementById('boardBtnTop').addEventListener('click', openBoard);
+
+// 성돌 메시지 상세
+function openStone(entry) {
+  document.getElementById('stoneMsg').textContent = entry.message;
+  document.getElementById('stoneMeta').textContent =
+    timeAgo(entry.created_at) + (entry.mine ? ' · 내가 남긴 성돌' : '') + ' · 낙산 구간';
+  openSheet(stonePanel);
+}
 
 // ───────────────────────── 최초 적재 ─────────────────────────
 function hideWallLoading() {
@@ -203,13 +320,13 @@ async function loadWall() {
   if (!res.ok) throw new Error('LOAD_FAILED');
   const { stones, stats } = await res.json();
 
-  total    = stats?.total ?? stones.length;
-  today    = stats?.today ?? 0;
-  capacity = stats?.capacity ?? capacity;
+  total = stats?.total ?? stones.length;
+  today = stats?.today ?? 0;
   renderStats();
 
   // 이미 쌓인 성돌은 애니메이션 없이 켜진 상태로 시작합니다
   for (const s of stones) placeStone(s, { instant: true });
+  updateBoardCount();
   if (!stones.length && firstPrompt) firstPrompt.classList.remove('gone');
   draw();
   hideWallLoading();
@@ -232,7 +349,10 @@ async function subscribeLive() {
           if (seenSlots.has(row.slot)) return;
           const { data } = await sb.from('slots').select('x, y').eq('idx', row.slot).single();
           if (!data) return;
-          placeStone({ slot: row.slot, message: row.message, x: data.x, y: data.y });
+          placeStone({
+            slot: row.slot, message: row.message,
+            x: data.x, y: data.y, created_at: row.created_at,
+          });
           total += 1; today += 1; renderStats();
         })
     .subscribe();
@@ -241,17 +361,25 @@ async function subscribeLive() {
 // ───────────────────────── 입력창 상태 ─────────────────────────
 function syncComposer() {
   const len = input.value.length;
-  charCount.textContent = len + ' / 50';
-  charCount.classList.toggle('near', len >= 40);
+  charCount.textContent = len + ' / ' + MAX_LEN;
+  charCount.classList.toggle('near', len >= MAX_LEN - 30);
   stackBtn.disabled = input.value.trim().length === 0;
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 132) + 'px';
 }
 input.addEventListener('input', syncComposer);
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    composer.requestSubmit();
+  }
+});
 syncComposer();
 
 // ───────────────────────── 제출 ─────────────────────────
 composer.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const message = input.value.trim().slice(0, 50);
+  const message = input.value.trim().slice(0, MAX_LEN);
   if (!message) return;
 
   stackBtn.disabled = true;
@@ -269,7 +397,7 @@ composer.addEventListener('submit', async (e) => {
     }
 
     input.value = '';
-    placeStone(body.stone, { mine: true });
+    placeStone({ ...body.stone, created_at: new Date().toISOString() }, { mine: true });
     bumpStats();
     showToast('성돌에 불이 켜졌습니다', 'ok');
     panTo(body.stone.x);
@@ -327,18 +455,6 @@ let hintHidden = false;
 function hideHint() { if (!hintHidden) { hintHidden = true; scrollHint.classList.add('hidden'); } }
 scrollwrap.addEventListener('scroll', hideHint, { passive: true });
 setTimeout(hideHint, 9000);
-
-// ───────────────────────── 소개 패널 ─────────────────────────
-function toggleAbout(open) {
-  if (!aboutPanel) return;
-  aboutPanel.classList.toggle('open', open);
-  aboutBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
-  if (open) aboutClose?.focus();
-}
-aboutBtn?.addEventListener('click', () => toggleAbout(!aboutPanel.classList.contains('open')));
-aboutClose?.addEventListener('click', () => toggleAbout(false));
-aboutPanel?.addEventListener('click', (e) => { if (e.target === aboutPanel) toggleAbout(false); });
-addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleAbout(false); });
 
 // ───────────────────────── 시작 ─────────────────────────
 loadWall().catch(() => {
