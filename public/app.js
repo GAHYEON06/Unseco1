@@ -18,6 +18,13 @@ const ctx         = canvas.getContext('2d');
 const composer    = document.getElementById('composer');
 const input       = document.getElementById('msgInput');
 const stackBtn    = document.getElementById('stackBtn');
+const charCount   = document.getElementById('charCount');
+const progressFill  = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+const wallLoading   = document.getElementById('wallLoading');
+const aboutBtn    = document.getElementById('aboutBtn');
+const aboutPanel  = document.getElementById('aboutPanel');
+const aboutClose  = document.getElementById('aboutClose');
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const taken = [];   // 화면에 놓인 메시지 성돌
@@ -147,10 +154,16 @@ function dismissPrompt() {
 }
 
 // ───────────────────────── 카운터 ─────────────────────────
-let total = 0, today = 0;
+let total = 0, today = 0, capacity = 605;
 function renderStats() {
   document.querySelector('#totalCount b').textContent = total.toLocaleString('ko-KR');
   document.querySelector('#todayCount b').textContent = '+' + today.toLocaleString('ko-KR');
+  if (progressFill) {
+    const pct = capacity ? Math.min(100, (total / capacity) * 100) : 0;
+    progressFill.style.width = pct.toFixed(1) + '%';
+    progressLabel.innerHTML =
+      '<b>' + total.toLocaleString('ko-KR') + '</b> / ' + capacity.toLocaleString('ko-KR') + ' 성돌';
+  }
 }
 function flashStat(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 
@@ -163,9 +176,9 @@ function bumpStats() {
 
 // ───────────────────────── 토스트 ─────────────────────────
 let toastT;
-function showToast(msg) {
+function showToast(msg, type = 'error') {
   toastEl.textContent = msg;
-  toastEl.classList.add('show');
+  toastEl.className = 'toast show' + (type === 'error' ? ' error' : '');
   clearTimeout(toastT);
   toastT = setTimeout(() => toastEl.classList.remove('show'), 2600);
 }
@@ -179,19 +192,27 @@ const ERRORS = {
 };
 
 // ───────────────────────── 최초 적재 ─────────────────────────
+function hideWallLoading() {
+  if (!wallLoading || wallLoading.classList.contains('gone')) return;
+  wallLoading.classList.add('gone');
+  setTimeout(() => wallLoading.remove(), 700);
+}
+
 async function loadWall() {
   const res = await fetch('/api/stones');
   if (!res.ok) throw new Error('LOAD_FAILED');
   const { stones, stats } = await res.json();
 
-  total = stats?.total ?? stones.length;
-  today = stats?.today ?? 0;
+  total    = stats?.total ?? stones.length;
+  today    = stats?.today ?? 0;
+  capacity = stats?.capacity ?? capacity;
   renderStats();
 
   // 이미 쌓인 성돌은 애니메이션 없이 켜진 상태로 시작합니다
   for (const s of stones) placeStone(s, { instant: true });
   if (!stones.length && firstPrompt) firstPrompt.classList.remove('gone');
   draw();
+  hideWallLoading();
 }
 
 // ───────────────────────── 실시간 구독 ─────────────────────────
@@ -217,6 +238,16 @@ async function subscribeLive() {
     .subscribe();
 }
 
+// ───────────────────────── 입력창 상태 ─────────────────────────
+function syncComposer() {
+  const len = input.value.length;
+  charCount.textContent = len + ' / 50';
+  charCount.classList.toggle('near', len >= 40);
+  stackBtn.disabled = input.value.trim().length === 0;
+}
+input.addEventListener('input', syncComposer);
+syncComposer();
+
 // ───────────────────────── 제출 ─────────────────────────
 composer.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -240,12 +271,12 @@ composer.addEventListener('submit', async (e) => {
     input.value = '';
     placeStone(body.stone, { mine: true });
     bumpStats();
-    showToast('성돌에 불이 켜졌습니다');
+    showToast('성돌에 불이 켜졌습니다', 'ok');
     panTo(body.stone.x);
   } catch {
     showToast('연결이 불안정합니다. 잠시 후 다시 시도해주세요.');
   } finally {
-    stackBtn.disabled = false;
+    syncComposer();
   }
 });
 
@@ -297,6 +328,21 @@ function hideHint() { if (!hintHidden) { hintHidden = true; scrollHint.classList
 scrollwrap.addEventListener('scroll', hideHint, { passive: true });
 setTimeout(hideHint, 9000);
 
+// ───────────────────────── 소개 패널 ─────────────────────────
+function toggleAbout(open) {
+  if (!aboutPanel) return;
+  aboutPanel.classList.toggle('open', open);
+  aboutBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open) aboutClose?.focus();
+}
+aboutBtn?.addEventListener('click', () => toggleAbout(!aboutPanel.classList.contains('open')));
+aboutClose?.addEventListener('click', () => toggleAbout(false));
+aboutPanel?.addEventListener('click', (e) => { if (e.target === aboutPanel) toggleAbout(false); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleAbout(false); });
+
 // ───────────────────────── 시작 ─────────────────────────
-loadWall().catch(() => showToast('성벽을 불러오지 못했습니다. 새로고침해주세요.'));
+loadWall().catch(() => {
+  hideWallLoading();
+  showToast('성벽을 불러오지 못했습니다. 새로고침해주세요.');
+});
 subscribeLive().catch(() => {});
