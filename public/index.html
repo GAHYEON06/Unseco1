@@ -469,6 +469,38 @@
     text-align:center;
   }
 
+  /* 후원 · 주최 크레딧 (항상 노출) */
+  .credits{
+    margin-top:10px;
+    display:flex; align-items:center; justify-content:center;
+    flex-wrap:wrap;
+    gap:10px 16px;
+    font-size:11px; color:var(--mist-dim);
+  }
+  .credits .orgs{
+    display:flex; align-items:center; gap:14px;
+  }
+  .credits .orgs img,
+  .credits .orgs .orglogo{
+    height:20px; width:auto; display:block;
+    opacity:0.9;
+  }
+  .credits .fund{
+    color:var(--mist);
+    letter-spacing:0.01em;
+  }
+  .credits .insta{
+    display:inline-flex; align-items:center; gap:5px;
+    color:var(--mist); text-decoration:none;
+    transition:color 0.18s ease;
+  }
+  .credits .insta:hover{color:var(--gold-soft);}
+  .credits .insta svg{width:13px; height:13px;}
+
+  /* 해반문화 SVG 폴백 (assets/logo-haeban.png 이 없을 때) */
+  .haeban-fallback{align-items:center; gap:6px; color:#2fa1a1; font-weight:700; font-size:11px;}
+  .haeban-fallback svg{height:22px; width:22px;}
+
   /* 입력한 메시지가 성벽으로 날아가는 빛 */
   .projectile{
     position:fixed; z-index:55;
@@ -586,6 +618,50 @@
     font-size:11px; font-weight:700;
   }
 
+  /* 소개 패널 — 링크 버튼 · 함께하는 기관 */
+  .sheet-card .linkrow{
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin:16px 0 4px;
+  }
+  .linkbtn{
+    display:inline-flex; align-items:center; gap:7px;
+    padding:9px 14px;
+    border-radius:10px;
+    font-size:12.5px; font-weight:600;
+    text-decoration:none;
+    border:1px solid var(--glass-border);
+    color:var(--gold-soft);
+    background:rgba(242,181,69,0.08);
+    cursor:pointer;
+    transition:filter 0.15s ease, opacity 0.15s ease;
+  }
+  .linkbtn:hover{filter:brightness(1.12);}
+  .linkbtn.ghost{
+    color:var(--mist); background:transparent; border-color:var(--hairline);
+  }
+  .linkbtn.ghost:hover{color:var(--paper);}
+  .linkbtn[aria-disabled="true"]{opacity:0.45; pointer-events:none;}
+  .linkbtn svg{width:15px; height:15px;}
+
+  .orgblock{
+    margin-top:20px; padding-top:18px;
+    border-top:1px solid var(--hairline);
+  }
+  .orgblock .cap{
+    font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--mist-dim); margin-bottom:12px;
+  }
+  .orgblock .orgrow{
+    display:flex; align-items:center; flex-wrap:wrap;
+    gap:16px 22px;
+  }
+  .orgblock .orgrow img,
+  .orgblock .orgrow .orglogo{ height:30px; width:auto; display:block; }
+  .orgblock .fund{
+    margin-top:14px;
+    font-size:12px; color:var(--mist);
+  }
+
   /* 한양도성 이야기 섹션 */
   .story-sec{ scroll-margin-top:8px; }
   .story-sec + .story-sec{
@@ -654,6 +730,9 @@
     .firstprompt{top:38%;}
     .console{padding:12px 12px 16px;}
     .console-hint{display:none;}
+    .credits{margin-top:8px; gap:6px 12px; font-size:10px;}
+    .credits .orgs{gap:10px;}
+    .credits .orgs img, .credits .orgs .orglogo{height:16px;}
     .chips{gap:6px; margin-bottom:12px;}
     .chips .chips-label{display:none;}
     .chip{font-size:11.5px; padding:6px 11px;}
@@ -738,9 +817,9 @@
   <div class="console-inner">
     <div class="chips">
       <span class="chips-label">한양도성 이야기</span>
-      <button class="chip" type="button" data-story="origin">원형</button>
-      <button class="chip" type="button" data-story="loss">훼손과 단절</button>
-      <button class="chip" type="button" data-story="future">미래의 복원</button>
+      <button class="chip" type="button" data-story="origin">600년 성곽</button>
+      <button class="chip" type="button" data-story="preserve">훼손과 보존</button>
+      <button class="chip" type="button" data-story="heritage">세계유산 재도전</button>
       <button class="chip board" type="button" id="boardBtn">실시간 게시판 <b id="boardCount">0</b></button>
     </div>
     <form class="composer" id="composer">
@@ -752,6 +831,24 @@
       <button type="submit" id="stackBtn" disabled>성돌 쌓기<span>Stack Stone</span></button>
     </form>
     <p class="console-hint">메시지를 남기면 성벽의 성돌 하나에 불이 켜지고, 모든 접속자에게 실시간으로 공유됩니다. · 줄바꿈은 Shift+Enter</p>
+    <div class="credits">
+      <span class="orgs" aria-label="주최·주관 기관">
+        <img src="/assets/logo-nha.png" alt="국가유산청">
+        <img src="/assets/logo-heritage-keeper.png" alt="사단법인 한국국가유산지킴이연합회">
+        <span class="orglogo haeban-slot">
+          <img src="/assets/logo-haeban.png" alt="사단법인 해반문화"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+          <span class="haeban-fallback" style="display:none">
+            <svg aria-hidden="true"><use href="#logoHaeban"/></svg>사단법인 해반문화
+          </span>
+        </span>
+      </span>
+      <span class="fund">본 사업은 복권기금으로 운영됩니다</span>
+      <a class="insta" href="https://www.instagram.com/_sumunjang_" target="_blank" rel="noopener noreferrer" aria-label="성곽수문장 인스타그램">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
+        @_sumunjang_
+      </a>
+    </div>
   </div>
 </footer>
 
@@ -763,19 +860,52 @@
     <button class="close" data-close type="button" aria-label="닫기">
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     </button>
-    <span class="eyebrow">디지털 성돌</span>
-    <h2 id="aboutTitle">시민의 메시지로 쌓아가는 한양도성</h2>
+    <span class="eyebrow">디지털 성돌 · 여민공수</span>
+    <h2 id="aboutTitle">당신의 한마디가 한양도성을 지키는 또 하나의 성돌이 됩니다</h2>
     <div class="sheet-scroll">
       <p>
-        어두운 한양도성 성벽에 메시지를 남기면, 사진 속 <strong>실제 성돌 하나</strong>에 불이 켜집니다.
-        켜진 성돌은 모든 접속자에게 실시간으로 공유되고, 사람이 모일수록 성벽이 밝아집니다.
-        사진은 낙산 구간의 야경입니다.
+        조선시대에는 <strong>‘여민공수(與民共守)’</strong>, 즉 ‘백성과 함께 성을 지킨다’는 정신이 있었습니다.
+        오늘날 우리는 그 의미를 이어받아, 시민이 함께 한양도성을 지키며 오늘날의 방식으로 여민공수의 정신을 잇고자 합니다.
       </p>
+      <p>
+        이곳에 남겨주신 한양도성 세계유산 등재 응원 메시지는 하나하나의 <strong>‘디지털 성돌’</strong>이 되어 모입니다.
+        모인 메시지는 향후 <strong>디지털 시민백서</strong>로 제작해 유네스코 위원회에 전달하고,
+        한양도성의 역사적 가치와 보존의 중요성을 널리 알리는 데 활용할 예정입니다.
+      </p>
+      <p>600년을 이어온 성곽에 여러분의 마음을 더해, 한양도성을 함께 지키는 여민공수에 참여해 주세요.</p>
+
       <ol class="steps">
         <li><b>1</b>아래 입력창에 응원 메시지를 적습니다 (200자까지)</li>
         <li><b>2</b>‘성돌 쌓기’를 누르면 빈 성돌 하나가 내 자리가 됩니다</li>
         <li><b>3</b>그 자리에 불이 켜지고, 성돌을 누르면 메시지를 다시 볼 수 있습니다</li>
       </ol>
+
+      <div class="linkrow">
+        <a class="linkbtn" id="eventFormLink" role="button" aria-disabled="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M15 4h5v5M20 4l-9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="eventFormLabel">경품 이벤트 응모 (준비 중)</span>
+        </a>
+        <a class="linkbtn ghost" href="https://www.instagram.com/_sumunjang_" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
+          성곽수문장 @_sumunjang_
+        </a>
+      </div>
+
+      <div class="orgblock">
+        <div class="cap">주최 · 주관</div>
+        <div class="orgrow">
+          <img src="/assets/logo-nha.png" alt="국가유산청">
+          <img src="/assets/logo-heritage-keeper.png" alt="사단법인 한국국가유산지킴이연합회">
+          <span class="orglogo haeban-slot">
+            <img src="/assets/logo-haeban.png" alt="사단법인 해반문화"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+            <span class="haeban-fallback" style="display:none">
+              <svg aria-hidden="true"><use href="#logoHaeban"/></svg>사단법인 해반문화
+            </span>
+          </span>
+        </div>
+        <p class="fund">본 사업은 복권기금으로 운영됩니다.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -787,32 +917,41 @@
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     </button>
     <span class="eyebrow">한양도성 이야기</span>
-    <h2 id="storyTitle">서울을 두른 성벽, 그 600년</h2>
+    <h2 id="storyTitle">서울을 둘러싼 600년 역사의 성곽</h2>
     <div class="sheet-scroll">
       <section class="story-sec" id="story-origin">
-        <h3>한양도성의 원형</h3>
+        <h3>600년을 함께한 성곽</h3>
         <p>
-          한양도성은 1396년(태조 5년) 조선의 도읍을 두르기 위해 쌓은 성곽입니다.
-          북악산·낙산·남산·인왕산의 능선을 따라 약 <strong>18.6km</strong>가 이어졌고,
-          흥인지문·돈의문·숭례문·숙정문의 사대문과 네 개의 소문이 성 안팎을 이었습니다.
-          태조 때의 자연석, 세종 때의 다듬은 돌, 숙종 이후의 규격화된 돌이 구간마다 함께 남아
-          쌓은 시기를 성돌만 보고도 읽을 수 있습니다.
+          한양도성은 조선의 수도 한양을 둘러싸고 보호하기 위해 세워진 성곽으로,
+          600년이 넘는 시간 동안 서울의 역사와 함께해 온 소중한 문화유산입니다.
+          성곽은 단순히 도시의 경계를 나누는 시설을 넘어, 수도를 방어하고
+          그 안에서 살아가는 사람들의 삶을 보호하는 중요한 공간이었습니다.
         </p>
       </section>
-      <section class="story-sec" id="story-loss">
-        <h3>훼손과 단절</h3>
+      <section class="story-sec" id="story-preserve">
+        <h3>훼손과 보존</h3>
         <p>
-          일제강점기 도시 개조와 전차 노선 부설로 돈의문과 서소문, 그리고 평지 성벽 상당 구간이 헐렸습니다.
-          광복 이후에도 도로와 주택이 들어서면서 낮은 지대의 성벽은 대부분 사라지거나 건물 아래 묻혔고,
-          지금은 전체의 약 <strong>70%</strong>만 지상에 남아 능선 구간을 중심으로 이어져 있습니다.
+          긴 세월 동안 한양도성은 자연재해와 전쟁, 도시의 성장과 개발 등으로 여러 차례 훼손되기도 했습니다.
+          하지만 성곽을 보존하고 복원하려는 노력 역시 꾸준히 이어져 왔으며,
+          오늘날에도 서울 곳곳에서 그 흔적과 모습을 만날 수 있습니다.
+          한양도성에는 조선시대 수도의 모습뿐 아니라 변화하는 서울의 역사와
+          그 안에서 살아온 사람들의 시간이 켜켜이 쌓여 있습니다.
         </p>
       </section>
-      <section class="story-sec" id="story-future">
-        <h3>미래의 복원</h3>
+      <section class="story-sec" id="story-heritage">
+        <h3>세계유산을 향한 재도전</h3>
         <p>
-          끊어진 구간을 잇는 발굴과 정비가 이어지고 있으며, 한양도성은 유네스코 세계유산 등재를 준비하고 있습니다.
-          이 캠페인은 물리적 복원에 앞서 <strong>시민의 기억으로 성벽을 다시 잇는</strong> 상징 프로젝트입니다.
-          한 사람의 메시지가 성돌 하나의 불빛이 되어, 어두운 성벽을 함께 밝혀 갑니다.
+          한양도성은 2012년 유네스코 세계유산 등재를 추진했지만, 등재 불가 판단으로 신청을 철회했습니다.
+          이후 가치를 보완·확장하여 한양도성·북한산성·탕춘대성을 묶은
+          <strong>‘한양의 수도성곽’</strong>으로 등재를 다시 추진하고 있으며,
+          <strong>2027년 세계유산 등재</strong>에 재도전할 예정입니다.
+        </p>
+        <p>
+          한양도성을 지킨다는 것은 오래된 성벽을 보존하는 데 그치지 않습니다.
+          그 안에 담긴 역사와 사람들의 기억, 오랜 시간 이어져 온 문화유산의 가치를
+          다음 세대에 전하는 일이기도 합니다.
+          한 번의 좌절을 넘어 다시 세계유산을 향해 나아가는 이 도전에,
+          우리 모두의 관심과 응원이 함께할 수 있습니다.
         </p>
       </section>
     </div>
@@ -846,6 +985,26 @@
     </div>
   </div>
 </div>
+
+<!-- 사단법인 해반문화 로고 SVG 폴백 (assets/logo-haeban.png 파일을 넣으면 그 이미지가 우선 표시됩니다) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logoHaeban" viewBox="0 0 120 120">
+    <defs>
+      <path id="hbArc" d="M60,60 m0,-44 a44,44 0 1 1 -0.01,0" fill="none"/>
+    </defs>
+    <circle cx="60" cy="60" r="57" fill="none" stroke="#2fa1a1" stroke-width="3.4"/>
+    <circle cx="60" cy="60" r="44" fill="none" stroke="#2fa1a1" stroke-width="1.5"/>
+    <text fill="#2fa1a1" font-family="'Noto Sans KR',sans-serif" font-size="12" font-weight="700" letter-spacing="1.2">
+      <textPath href="#hbArc" startOffset="26%">사단법인 해반문화</textPath>
+    </text>
+    <g fill="#2fa1a1">
+      <path d="M45,88 C42,70 45,54 53,44 C52,54 52,60 55,64 C57,52 63,42 72,36
+               C70,48 68,56 66,62 C72,54 80,50 87,50 C82,62 74,70 66,74
+               C74,72 82,74 86,78 C76,86 62,90 45,88 Z"/>
+    </g>
+    <text x="60" y="83" text-anchor="middle" fill="#2fa1a1" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="10">since 1991</text>
+  </symbol>
+</svg>
 
 </body>
 </html>

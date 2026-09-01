@@ -9,6 +9,14 @@
 const GLOW_SRC = '/assets/glow.png';
 const MAX_LEN  = 200;   // 응원 메시지 최대 길이
 
+// ─── 외부 링크 ────────────────────────────────────────────────
+//  · eventForm : 경품 이벤트 응모 구글폼 링크. 받으면 아래 따옴표 안에 붙여넣으세요.
+//                (비워두면 소개 패널의 버튼이 '준비 중' 상태로 표시됩니다)
+const LINKS = {
+  instagram: 'https://www.instagram.com/_sumunjang_',
+  eventForm: '',
+};
+
 const tilesEl     = document.getElementById('tiles');
 const scrollwrap  = document.getElementById('scrollwrap');
 const centerFrame = document.getElementById('centerFrame');
@@ -297,6 +305,24 @@ addEventListener('keydown', (e) => {
 
 // 소개
 document.getElementById('aboutBtn').addEventListener('click', () => openSheet(aboutPanel));
+
+// 경품 이벤트 구글폼 링크 (LINKS.eventForm 이 채워지면 활성화)
+(() => {
+  const a = document.getElementById('eventFormLink');
+  const label = document.getElementById('eventFormLabel');
+  if (!a) return;
+  if (LINKS.eventForm) {
+    a.href = LINKS.eventForm;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.removeAttribute('aria-disabled');
+    if (label) label.textContent = '경품 이벤트 응모하기';
+  } else {
+    a.setAttribute('aria-disabled', 'true');
+    a.removeAttribute('href');
+    if (label) label.textContent = '경품 이벤트 응모 (준비 중)';
+  }
+})();
 
 // 한양도성 이야기 — 칩을 누르면 해당 섹션으로
 document.querySelectorAll('.chip[data-story]').forEach((chip) => {
