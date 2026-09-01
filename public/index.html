@@ -986,23 +986,36 @@
   </div>
 </div>
 
-<!-- 사단법인 해반문화 로고 SVG 폴백 (assets/logo-haeban.png 파일을 넣으면 그 이미지가 우선 표시됩니다) -->
+<!-- 사단법인 해반문화 로고 (assets/logo-haeban.png 파일을 넣으면 그 이미지가 우선 표시됩니다) -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="logoHaeban" viewBox="0 0 120 120">
     <defs>
-      <path id="hbArc" d="M60,60 m0,-44 a44,44 0 1 1 -0.01,0" fill="none"/>
+      <path id="hbTop" d="M17,60 A43,43 0 0 1 103,60" fill="none"/>
+      <path id="hbBot" d="M103,63 A43,43 0 0 1 17,63" fill="none"/>
     </defs>
-    <circle cx="60" cy="60" r="57" fill="none" stroke="#2fa1a1" stroke-width="3.4"/>
-    <circle cx="60" cy="60" r="44" fill="none" stroke="#2fa1a1" stroke-width="1.5"/>
-    <text fill="#2fa1a1" font-family="'Noto Sans KR',sans-serif" font-size="12" font-weight="700" letter-spacing="1.2">
-      <textPath href="#hbArc" startOffset="26%">사단법인 해반문화</textPath>
+    <circle cx="60" cy="60" r="58" fill="none" stroke="#37a7a0" stroke-width="1.6"/>
+    <circle cx="60" cy="60" r="53" fill="none" stroke="#37a7a0" stroke-width="1.6"/>
+    <circle cx="60" cy="60" r="41" fill="none" stroke="#37a7a0" stroke-width="1.4"/>
+    <text fill="#37a7a0" font-family="'Noto Sans KR','Malgun Gothic',sans-serif" font-size="10.5" font-weight="700" letter-spacing="1">
+      <textPath href="#hbTop" startOffset="50%" text-anchor="middle">사단법인 해반문화</textPath>
     </text>
-    <g fill="#2fa1a1">
-      <path d="M45,88 C42,70 45,54 53,44 C52,54 52,60 55,64 C57,52 63,42 72,36
-               C70,48 68,56 66,62 C72,54 80,50 87,50 C82,62 74,70 66,74
-               C74,72 82,74 86,78 C76,86 62,90 45,88 Z"/>
+    <text fill="#37a7a0" font-family="Arial,Helvetica,sans-serif" font-size="8" font-weight="600" letter-spacing="1.4">
+      <textPath href="#hbBot" startOffset="50%" text-anchor="middle">Haeban culture association</textPath>
+    </text>
+    <!-- 중앙 불꽃 마크 -->
+    <g fill="#37a7a0">
+      <path d="M42,84 L42,66
+               C42,66 40,58 43,52 C45,56 45,60 45,63
+               C45,58 46,49 51,42 C53,47 52,55 51,60
+               C52,53 55,43 61,36 C64,43 62,54 60,61
+               C62,54 66,45 72,40 C74,48 70,58 66,64
+               C70,58 75,53 80,52 C79,60 73,68 66,72
+               L78,72 L78,84 Z"/>
+      <path d="M42,84 C38,84 35,82 33,79 C37,79 40,80 42,82 Z
+               M78,84 C82,84 85,82 88,78 C83,79 80,81 78,83 Z
+               M50,86 C48,88 45,89 42,89 C44,86 47,85 50,85 Z"/>
     </g>
-    <text x="60" y="83" text-anchor="middle" fill="#2fa1a1" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="10">since 1991</text>
+    <text x="60" y="80" text-anchor="middle" fill="#9c3b34" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="9">since 1991</text>
   </symbol>
 </svg>
 
