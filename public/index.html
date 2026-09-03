@@ -685,6 +685,7 @@
   }
   .orgblock .orgrow img,
   .orgblock .orgrow .orglogo{ height:30px; width:auto; display:block; }
+  .orgblock .orgrow .haeban-slot img{ height:42px; }
   .orgblock .fund{
     margin-top:14px;
     font-size:12px; color:var(--mist);
@@ -995,8 +996,8 @@
           <img src="/assets/logo-nha.png" alt="국가유산청">
           <img src="/assets/logo-heritage-keeper.png" alt="사단법인 한국국가유산지킴이연합회">
           <span class="orglogo haeban-slot">
-            <img src="/assets/logo-haeban.png" alt="사단법인 해반문화"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+            <img src="/assets/logo-haeban-wide.png" alt="사단법인 해반문화"
+                 onerror="this.src='/assets/logo-haeban.png';this.onerror=function(){this.style.display='none';this.nextElementSibling.style.display='inline-flex'}">
             <span class="haeban-fallback" style="display:none">
               <svg aria-hidden="true"><use href="#logoHaeban"/></svg>사단법인 해반문화
             </span>
