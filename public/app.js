@@ -10,11 +10,12 @@ const GLOW_SRC = '/assets/glow.png';
 const MAX_LEN  = 200;   // 응원 메시지 최대 길이
 
 // ─── 외부 링크 ────────────────────────────────────────────────
-//  · eventForm : 경품 이벤트 응모 구글폼 링크. 받으면 아래 따옴표 안에 붙여넣으세요.
-//                (비워두면 소개 패널의 버튼이 '준비 중' 상태로 표시됩니다)
+//  · eventForm : 경품 이벤트 응모 구글폼 링크
+//  · gameEmail : 보드게임 제작·교육 활용 문의 메일
 const LINKS = {
   instagram: 'https://www.instagram.com/_sumunjang_',
-  eventForm: '',
+  eventForm: 'https://docs.google.com/forms/d/e/1FAIpQLSeDkMO2pmcJNAdoA09aagfDDBYqRwvqL-tHSp3jGg31MV5W4Q/viewform',
+  gameEmail: 'sumunjang2026@gmail.com',
 };
 
 const tilesEl     = document.getElementById('tiles');
@@ -278,7 +279,9 @@ const aboutPanel = document.getElementById('aboutPanel');
 const storyPanel = document.getElementById('storyPanel');
 const boardPanel = document.getElementById('boardPanel');
 const stonePanel = document.getElementById('stonePanel');
-const sheets = [aboutPanel, storyPanel, boardPanel, stonePanel];
+const gamePanel  = document.getElementById('gamePanel');
+const eventPanel = document.getElementById('eventPanel');
+const sheets = [aboutPanel, storyPanel, boardPanel, stonePanel, gamePanel, eventPanel];
 let lastFocus = null;
 
 function openSheet(el) {
@@ -306,21 +309,26 @@ addEventListener('keydown', (e) => {
 // 소개
 document.getElementById('aboutBtn').addEventListener('click', () => openSheet(aboutPanel));
 
-// 경품 이벤트 구글폼 링크 (LINKS.eventForm 이 채워지면 활성화)
+// 보드게임 · 이벤트 응모 탭 (칩 + 소개 패널 안의 버튼)
+const PANELS = { game: gamePanel, event: eventPanel };
+document.querySelectorAll('[data-panel]').forEach((el) => {
+  el.addEventListener('click', () => {
+    const p = PANELS[el.dataset.panel];
+    if (p) openSheet(p);
+  });
+});
+
+// 이벤트 응모 버튼 → 구글폼
 (() => {
-  const a = document.getElementById('eventFormLink');
-  const label = document.getElementById('eventFormLabel');
-  if (!a) return;
+  const cta = document.getElementById('eventCta');
+  if (!cta) return;
   if (LINKS.eventForm) {
-    a.href = LINKS.eventForm;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.removeAttribute('aria-disabled');
-    if (label) label.textContent = '경품 이벤트 응모하기';
+    cta.href = LINKS.eventForm;
   } else {
-    a.setAttribute('aria-disabled', 'true');
-    a.removeAttribute('href');
-    if (label) label.textContent = '경품 이벤트 응모 (준비 중)';
+    cta.removeAttribute('href');
+    cta.style.pointerEvents = 'none';
+    cta.style.opacity = '0.5';
+    cta.textContent = '이벤트 응모 링크 준비 중';
   }
 })();
 

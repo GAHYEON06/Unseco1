@@ -411,6 +411,31 @@
   .chip.board::before{background:var(--gold);}
   .chip.board b{font-weight:700; font-variant-numeric:tabular-nums;}
 
+  /* 보드게임 탭 — 하늘색으로 구분 */
+  .chip.game{
+    color:#a9d8f0;
+    border-color:rgba(124,196,232,0.42);
+    background:rgba(124,196,232,0.12);
+  }
+  .chip.game::before{display:none;}
+  .chip.game:hover{color:#d4ecfa; border-color:rgba(124,196,232,0.7);}
+
+  /* 이벤트 응모 탭 — 방문자가 바로 찾도록 가장 강조 */
+  .chip.event{
+    color:#3a2708;
+    font-weight:700;
+    border-color:rgba(255,255,255,0.55);
+    background:linear-gradient(180deg,#fff6e4,#f7e4bb);
+    box-shadow:0 0 0 0 rgba(246,200,118,0.5);
+    animation:eventpulse 2.6s ease-in-out infinite;
+  }
+  .chip.event::before{display:none;}
+  .chip.event:hover{filter:brightness(1.06); border-color:#fff;}
+  @keyframes eventpulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(246,200,118,0.0);}
+    50%{box-shadow:0 0 16px 3px rgba(246,200,118,0.6);}
+  }
+
   .composer{
     display:flex; align-items:flex-end; gap:10px;
     background:var(--glass-strong);
@@ -709,6 +734,74 @@
     padding:30px 0;
   }
 
+  /* 보드게임 탭 */
+  .gamefig{ margin:0 0 14px; }
+  .gamefig img{
+    width:100%; height:auto; display:block;
+    border-radius:12px;
+    border:1px solid var(--hairline);
+    background:#f4eee0;
+  }
+  .gamefig figcaption{
+    margin-top:6px; font-size:11px; color:var(--mist-dim); text-align:center;
+  }
+  .game-mascot{
+    display:block; height:120px; width:auto; margin:2px auto 12px;
+  }
+  .contactline{
+    margin-top:16px; padding-top:16px;
+    border-top:1px solid var(--hairline);
+    font-size:12.5px; color:var(--mist); line-height:1.7;
+  }
+  .contactline a{ color:var(--gold-soft); text-decoration:none; font-weight:600; }
+  .contactline a:hover{ text-decoration:underline; }
+
+  /* 이벤트 응모 탭 */
+  .event-cta{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%;
+    margin:4px 0 18px;
+    padding:14px 18px;
+    border-radius:12px;
+    background:linear-gradient(180deg,#ffd583,var(--gold) 55%,var(--gold-deep));
+    color:#2c1a05; font-weight:700; font-size:15px;
+    text-decoration:none;
+    box-shadow:0 10px 30px -10px rgba(242,181,69,0.5);
+    transition:filter 0.15s ease, transform 0.15s ease;
+  }
+  .event-cta:hover{ filter:brightness(1.08); }
+  .event-cta:active{ transform:scale(0.98); }
+  .event-cta svg{ width:17px; height:17px; }
+
+  .prizes{
+    list-style:none; margin:0 0 4px; padding:0;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .prizes li{
+    display:flex; align-items:center; gap:12px;
+    background:rgba(246,239,224,0.04);
+    border:1px solid var(--hairline);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:13px; color:var(--paper);
+  }
+  .prizes .rank{
+    flex:0 0 auto;
+    font-family:'Gowun Batang','Noto Serif KR',serif;
+    font-size:13px; font-weight:700; color:var(--gold-soft);
+    min-width:34px;
+  }
+  .prizes .qty{ margin-left:auto; color:var(--mist-dim); font-size:12px; white-space:nowrap; }
+  .notice-box{
+    margin-top:16px;
+    background:rgba(242,181,69,0.06);
+    border:1px solid rgba(242,181,69,0.22);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:12.5px; line-height:1.75; color:var(--mist);
+  }
+  .notice-box strong{ color:var(--gold-soft); }
+
   /* 성돌 메시지 상세 */
   .stone-msg{
     font-family:'Gowun Batang','Noto Serif KR',serif;
@@ -824,6 +917,8 @@
       <button class="chip" type="button" data-story="preserve">훼손과 보존</button>
       <button class="chip" type="button" data-story="heritage">세계유산 재도전</button>
       <button class="chip board" type="button" id="boardBtn">실시간 게시판 <b id="boardCount">0</b></button>
+      <button class="chip game" type="button" data-panel="game">🎲 보드게임</button>
+      <button class="chip event" type="button" data-panel="event">🎁 이벤트 응모</button>
     </div>
     <form class="composer" id="composer">
       <label class="sr-only" for="msgInput">참여하기: 성돌에 메시지를 남기세요</label>
@@ -884,10 +979,10 @@
       </ol>
 
       <div class="linkrow">
-        <a class="linkbtn" id="eventFormLink" role="button" aria-disabled="true">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M15 4h5v5M20 4l-9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span id="eventFormLabel">경품 이벤트 응모 (준비 중)</span>
-        </a>
+        <button class="linkbtn" type="button" data-panel="event">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7S12 2 8 2 4 6 12 7zM12 7s0-5 4-5 4 4-4 5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          경품 이벤트 응모하기
+        </button>
         <a class="linkbtn ghost" href="https://www.instagram.com/_sumunjang_" target="_blank" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
           성곽수문장 @_sumunjang_
@@ -957,6 +1052,87 @@
           우리 모두의 관심과 응원이 함께할 수 있습니다.
         </p>
       </section>
+    </div>
+  </div>
+</div>
+
+<!-- 한양도성 보드게임 -->
+<div class="sheet" id="gamePanel" role="dialog" aria-modal="true" aria-labelledby="gameTitle">
+  <div class="sheet-card wide">
+    <button class="close" data-close type="button" aria-label="닫기">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="eyebrow">한양도성 보드게임</span>
+    <h2 id="gameTitle">「한양도성 : 성곽을 복원하라!」</h2>
+    <div class="sheet-scroll">
+      <img class="game-mascot" src="/assets/sumunjang-mascot.png" alt="성곽수문장 마스코트"
+           onerror="this.style.display='none'">
+      <p>
+        한양도성의 역사와 가치를 보다 쉽고 재미있게 알아갈 수 있도록 제작한
+        한양도성 보드게임입니다.
+      </p>
+
+      <figure class="gamefig">
+        <img src="/assets/board-game.jpg" alt="한양도성 보드게임 게임판"
+             onerror="this.parentElement.style.display='none'">
+        <figcaption>게임판 — 한양도성을 한 바퀴 돌며 훼손 구역을 복원합니다</figcaption>
+      </figure>
+      <figure class="gamefig">
+        <img src="/assets/rulebook-1.jpg" alt="보드게임 룰북 — 구성품·게임 소개"
+             onerror="this.parentElement.style.display='none'">
+      </figure>
+      <figure class="gamefig">
+        <img src="/assets/rulebook-2.jpg" alt="보드게임 룰북 — 칸 설명·진행 방법·카드"
+             onerror="this.parentElement.style.display='none'">
+      </figure>
+
+      <p style="margin-top:4px">
+        <a class="linkbtn ghost" href="https://www.instagram.com/_sumunjang_" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
+          성곽수문장 인스타그램 @_sumunjang_
+        </a>
+      </p>
+
+      <div class="contactline">
+        위 보드게임과 관련한 제작 및 교육 활용 문의는 아래 메일로 연락 부탁드립니다.<br>
+        <a href="mailto:sumunjang2026@gmail.com">sumunjang2026@gmail.com</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 이벤트 응모 -->
+<div class="sheet" id="eventPanel" role="dialog" aria-modal="true" aria-labelledby="eventTitle">
+  <div class="sheet-card">
+    <button class="close" data-close type="button" aria-label="닫기">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="eyebrow">이벤트 응모</span>
+    <h2 id="eventTitle">응원 메시지 남기고 경품 받아가세요</h2>
+    <div class="sheet-scroll">
+      <a class="event-cta" id="eventCta" href="#" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7S12 2 8 2 4 6 12 7zM12 7s0-5 4-5 4 4-4 5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        이벤트 응모하기 (구글폼)
+      </a>
+      <p style="font-size:12px;color:var(--mist-dim);margin-top:-8px">
+        경품 전달을 위해 이름과 연락처를 받습니다. 응모를 원하시는 분만 작성해 주세요.
+      </p>
+
+      <div class="cap" style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mist-dim);margin:18px 0 10px">상품 안내</div>
+      <ul class="prizes">
+        <li><span class="rank">1등</span> 올리브영 5만원권 <span class="qty">2명</span></li>
+        <li><span class="rank">2등</span> 배달의민족 2만원권 <span class="qty">5명</span></li>
+        <li><span class="rank">3등</span> 컴포즈커피 아메리카노 <span class="qty">55명</span></li>
+      </ul>
+
+      <div class="notice-box">
+        모든 응원 메시지는 소중하게 확인하고 있습니다.
+        다만 이벤트 취지에 맞지 않는 지나치게 짧거나 의미가 없는 메시지, 반복적인 내용 등
+        <strong>성의가 없다고 판단되는 메시지는 추첨 대상에서 제외</strong>될 수 있습니다.
+        <br><br>
+        유네스코 세계문화유산 등재를 응원하는 이벤트인 만큼, 짧더라도
+        <strong>진심이 담긴 응원 메시지</strong>를 남겨주세요!
+      </div>
     </div>
   </div>
 </div>
