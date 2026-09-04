@@ -18,7 +18,7 @@ public/
   favicon.svg
   assets/
     wall.jpg          배경 사진
-    glow.png          성돌 605개의 발광 스텐실
+    glow.png          성돌 발광 스텐실 (검출된 605개 돌 모양 기준)
     slots.json        성돌 좌표 (참고용)
     og.jpg            공유 카드 이미지
 api/
@@ -26,13 +26,14 @@ api/
   config.js           브라우저에 공개 키 전달
 supabase/
   schema.sql              테이블 · RLS · 함수
-  seed_slots.sql          성돌 605자리 좌표
+  seed_slots.sql          성돌 1000자리 좌표
   alter_message_length.sql  이미 배포한 프로젝트에서 메시지 길이를 200자로 늘릴 때
+  add_slots_to_1000.sql     이미 배포한 프로젝트에서 성돌 자리를 1000개로 늘릴 때
 ```
 
 ### 불빛의 원리
 
-`glow.png` 는 배경 사진을 이미지 처리해 **성벽의 돌 605개를 하나씩 검출한 뒤 그 모양대로만 발광**하도록 만든 스텐실입니다.
+`glow.png` 는 배경 사진을 이미지 처리해 **성벽의 돌 605개를 하나씩 검출한 뒤 그 모양대로만 발광 (자리는 조밀화하여 1000개 운영)**하도록 만든 스텐실입니다.
 브라우저는 켜진 좌표에만 둥근 마스크를 그리고 `source-in` 합성으로 스텐실을 뚫어 냅니다.
 따라서 켜지는 불빛이 항상 사진 속 진짜 돌 모양과 정확히 일치합니다.
 
@@ -44,13 +45,13 @@ supabase/
 
 1. <https://supabase.com> 에서 **New project** 생성 (Region: `Northeast Asia (Seoul)` 권장)
 2. 좌측 **SQL Editor** → `supabase/schema.sql` 내용을 붙여넣고 **Run**
-3. 같은 자리에 `supabase/seed_slots.sql` 을 붙여넣고 **Run** → 성돌 605자리가 등록됩니다
+3. 같은 자리에 `supabase/seed_slots.sql` 을 붙여넣고 **Run** → 성돌 1000자리가 등록됩니다
 4. **Project Settings → API** 에서 세 값을 복사해 둡니다
    - `Project URL`
    - `anon public` 키 — 공개되어도 되는 키
    - `service_role` 키 — **절대 공개 금지**
 
-> 확인: SQL Editor 에서 `select count(*) from slots;` → `605` 가 나오면 정상입니다.
+> 확인: SQL Editor 에서 `select count(*) from slots;` → `1000` 이 나오면 정상입니다.
 
 ### 2. GitHub에 올리기
 
@@ -124,6 +125,10 @@ select created_at, message from stones order by created_at desc limit 100;
 delete from stones where id = 123;
 ```
 
+**성돌 자리를 1000개로 늘리기 (이미 배포한 프로젝트)**
+`supabase/add_slots_to_1000.sql` 을 SQL Editor 에 붙여넣고 Run 하면 605 → 1000개가 됩니다.
+(새로 배포하는 경우 `seed_slots.sql` 에 이미 1000개가 들어 있어 따로 실행할 필요가 없습니다.)
+
 **성벽이 가득 찼을 때 — 두 번째 구간 열기**
 성벽 사진을 한 장 더 준비해 같은 방식으로 좌표를 뽑아 `slots` 에 이어 붙이거나,
 `slots` 에 `section` 열을 추가해 구간을 나누면 됩니다.
@@ -141,5 +146,5 @@ delete from stones where id = 123;
 
 두 서비스의 무료 플랜으로 시작할 수 있습니다.
 Supabase 무료 플랜은 500MB 데이터베이스와 동시접속 200명 규모의 Realtime 을 제공하므로,
-성돌 605개 규모의 캠페인에는 넉넉합니다. 대규모 홍보로 동시접속이 크게 늘어날 것 같다면
+성돌 1000개 규모의 캠페인에는 넉넉합니다. 대규모 홍보로 동시접속이 크게 늘어날 것 같다면
 Supabase Pro 플랜과 Vercel Pro 플랜을 미리 검토하세요.

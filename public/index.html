@@ -758,6 +758,18 @@
   .contactline a:hover{ text-decoration:underline; }
 
   /* 이벤트 응모 탭 */
+  .event-deadline{
+    display:inline-block;
+    margin:2px 0 12px;
+    padding:6px 14px;
+    border-radius:999px;
+    background:rgba(242,181,69,0.12);
+    border:1px solid rgba(242,181,69,0.3);
+    color:var(--gold-soft);
+    font-size:13px;
+    font-variant-numeric:tabular-nums;
+  }
+  .event-deadline strong{ color:var(--gold); font-weight:700; }
   .event-cta{
     display:flex; align-items:center; justify-content:center; gap:8px;
     width:100%;
@@ -1108,6 +1120,7 @@
     <span class="eyebrow">이벤트 응모</span>
     <h2 id="eventTitle">응원 메시지 남기고 경품 받아가세요</h2>
     <div class="sheet-scroll">
+      <p class="event-deadline"><strong>응모 기간</strong> · 2026년 10월 1일까지</p>
       <a class="event-cta" id="eventCta" href="#" target="_blank" rel="noopener noreferrer">
         <svg viewBox="0 0 24 24" fill="none"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7S12 2 8 2 4 6 12 7zM12 7s0-5 4-5 4 4-4 5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         이벤트 응모하기 (구글폼)
